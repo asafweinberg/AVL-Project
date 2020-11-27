@@ -9,6 +9,9 @@ import printing.TreePrinter;
  * distinct integer keys and info
  *
  */
+enum EInsertCase {
+	PROMOTE,ROTATE,DOUBLE;
+}
 
 public class AVLTree {
 	private AVLNode root;
@@ -69,10 +72,13 @@ public class AVLTree {
 			this.size++;
 			return 1;
 		}
-		AVLNode parent = (AVLNode)getInsertLocation( this.getRoot(), k);
+		
+		AVLNode parent = (AVLNode)getInsertLocation(this.getRoot(), k);
 		if (parent == null) {
 			return -1;
 		}
+		
+		boolean isParentLeaf=parent.isLeaf();
 		
 		AVLNode node = new AVLNode(k, i);
 		if (parent.getKey() > k) {
@@ -82,8 +88,19 @@ public class AVLTree {
 			parent.setRight(node);
 		}
 		this.size++;
-		return 1;
+		
+		if (!isParentLeaf) {
+			return 1;	//to check if 1 or 0 with GARIBOS
+		}
+		
+		else {
+			parent.promote();
+			return insertToLeaf(parent);
+		}
+		
 	}
+	
+	
 	
 	// The method gets the root and the key needed to be inserted into the tree.
 	// returns the node which the new node will be under him.
@@ -98,6 +115,32 @@ public class AVLTree {
 			return getInsertLocation(r.getRight(), k);
 		}
 		return null;
+	}
+	
+	private int insertToLeaf(AVLNode parent) {
+		AVLNode node = parent;
+		int balanceActions=1;
+		EInsertCase which_case=getCaseOfInsert(parent);
+		while (node!=this.root ) {
+			switch(which_case) {
+				case PROMOTE:
+					node.promote();
+					break;
+				case ROTATE:
+					node.rotate();
+					balanceActions+=2;   //to check with GARIBI
+					break;
+				case DOUBLE:
+					node.doubleRotate();
+					balanceActions+=5; 
+					break;
+				default:
+					return balanceActions;
+			}
+			node=(AVLNode)node.getParent();
+			which_case=getCaseOfInsert(node);
+		}		
+		return balanceActions;		
 	}
 
 	/**
@@ -273,9 +316,23 @@ public class AVLTree {
 			this.key = -1;
 			this.height = -1;
 			this.rank = -1;
-			int lk;
 		}
 		
+		public void doubleRotate() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void rotate() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void promote() {
+			// TODO Auto-generated method stub
+			
+		}
+
 		// Constructor to create a new tree-node with two virtual sons
 		public AVLNode(int key, String info) {
 			this.key = key;

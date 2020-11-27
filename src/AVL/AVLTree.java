@@ -10,17 +10,24 @@ import printing.TreePrinter;
  *
  */
 enum EInsertCase {
-	PROMOTE,ROTATE,DOUBLE;
+	PROMOTE,ROTATE,DOUBLE, OK;
+}
+
+enum EDeleteCase {
+	DEMOTE, ROTATE_DEMOTE, ROTATE_DOUBLE_DEMOTE, DOUBLE, OK;
 }
 
 public class AVLTree {
 	private AVLNode root;
 	private int size;
+	private int min;
+	private int max;
 	
 	public AVLTree() {
 		this.root = new AVLNode();
 		this.size = 0;
-		int y=0;
+		this.max = Integer.MIN_VALUE;
+		this.min = Integer.MAX_VALUE;
 	}
 	/**
 	 * public boolean empty()
@@ -66,6 +73,9 @@ public class AVLTree {
 	 * returns -1 if an item with key k already exists in the tree.
 	 */
 	public int insert(int k, String i) {
+		this.max = Math.max(k, this.max);
+		this.min = Math.min(k, this.min);
+		
 		if (this.empty())
 		{
 			this.root = new AVLNode(k, i);
@@ -78,7 +88,7 @@ public class AVLTree {
 			return -1;
 		}
 		
-		boolean isParentLeaf=parent.isLeaf();
+		boolean isParentLeaf = parent.isLeaf();
 		
 		AVLNode node = new AVLNode(k, i);
 		if (parent.getKey() > k) {
@@ -87,20 +97,18 @@ public class AVLTree {
 		else {
 			parent.setRight(node);
 		}
+		
 		this.size++;
 		
 		if (!isParentLeaf) {
 			return 1;	//to check if 1 or 0 with GARIBOS
 		}
-		
 		else {
 			parent.promote();
-			return insertToLeaf(parent);
+			return this.insertToLeaf(parent);
 		}
 		
 	}
-	
-	
 	
 	// The method gets the root and the key needed to be inserted into the tree.
 	// returns the node which the new node will be under him.
@@ -119,8 +127,8 @@ public class AVLTree {
 	
 	private int insertToLeaf(AVLNode parent) {
 		AVLNode node = parent;
-		int balanceActions=1;
-		EInsertCase which_case=getCaseOfInsert(parent);
+		int balanceActions = 1;
+		EInsertCase which_case = getCaseOfInsert(parent);
 		while (node!=this.root ) {
 			switch(which_case) {
 				case PROMOTE:
@@ -128,19 +136,46 @@ public class AVLTree {
 					break;
 				case ROTATE:
 					node.rotate();
-					balanceActions+=2;   //to check with GARIBI
+					balanceActions+=2;
 					break;
 				case DOUBLE:
-					node.doubleRotate();
+					node.doubleRotateInsert();
 					balanceActions+=5; 
 					break;
 				default:
 					return balanceActions;
 			}
-			node=(AVLNode)node.getParent();
-			which_case=getCaseOfInsert(node);
+			node = (AVLNode)node.getParent();
+			which_case = getCaseOfInsert(node);
 		}		
 		return balanceActions;		
+	}
+	
+	private EInsertCase getCaseOfInsert(AVLNode node) {
+		int rightDifference = node.getRight().getRankDifference();
+		int leftDifference = node.getLeft().getRankDifference();
+		if (leftDifference == 1 && rightDifference == 1) {
+			return EInsertCase.OK;
+		}
+		if (leftDifference == 0 || rightDifference == 0) {
+			if (leftDifference == 1 || rightDifference == 1) {
+				return EInsertCase.PROMOTE;
+			}
+			if (leftDifference == 2 || rightDifference == 2) {
+				if (leftDifference == 0) {
+					AVLNode l = (AVLNode)node.getLeft();
+					if(l.getLeft().getRankDifference() == 1 && l.getRight().getRankDifference() == 2) {
+						return EInsertCase.ROTATE;
+					}
+					else {
+						return EInsertCase.DOUBLE;
+					}
+				}
+				else {
+					System.out.println("not working - case Insert not found :(");
+				}
+			}
+		}
 	}
 
 	/**
@@ -154,8 +189,127 @@ public class AVLTree {
 	 */
 	public int delete(int k)
 	{
-		return 42;	// to be replaced by student code
+		if (this.empty()) {
+			return 0;
+		}
+		AVLNode nodeToDelete = this.getDeleteLocation(k);
+		AVLNode replacement = this.getNodeToReplace(nodeToDelete);
+		
+		nodeToDelete.replace(replacement);
+		
+		AVLNode parent = (AVLNode)nodeToDelete.getParent();
+		boolean deletingLeaf = nodeToDelete.isLeaf();
+		
+		nodeToDelete.delete();
+		
+		int balanceActions;
+		
+		if(deletingLeaf) {
+			balanceActions = this.deleteRebalance(parent);
+		}
+		else {
+			balanceActions = this.deleteRebalance(parent);
+		}
+		
+		if (k == this.min) {
+			this.min = this.minNode().getKey();
+		}
+		if (k == this.max) {
+			this.max = this.minNode().getKey();
+		}
+		
+		return balanceActions;
 	}
+	
+	private int deleteRebalance(AVLNode parent) {
+		AVLNode node = parent;
+		int balanceActions = 1;
+		EDeleteCase which_case = getCaseOfDelete(parent);
+		while (node != this.root ) {
+			switch(which_case) {
+				case DEMOTE:
+					node.demote();
+					balanceActions++;
+					break;
+				case ROTATE_DEMOTE:
+					node.rotateDemote();
+					balanceActions+=3;
+					break;
+				case ROTATE_DOUBLE_DEMOTE:
+					node.rotateDoubleDemote();
+					balanceActions+=3;
+					break;
+				case DOUBLE:
+					node.doubleRotateDelete();
+					balanceActions+=6; 
+					break;
+				default:
+					return balanceActions;
+			}
+			node = (AVLNode)node.getParent();
+			which_case = getCaseOfDelete(node);
+		}		
+		return balanceActions;		
+	}
+	
+	private EDeleteCase getCaseOfDelete(AVLNode node) {
+		int rightDifference = node.getRight().getRankDifference();
+		int leftDifference = node.getLeft().getRankDifference();
+		if (rightDifference == 2 || leftDifference == 2) {
+			if (rightDifference - leftDifference == 0) {
+				return EDeleteCase.DEMOTE;
+			}
+			else {
+				return EDeleteCase.OK;
+			}
+		}
+		if (rightDifference == 3 || leftDifference == 3) {
+			AVLNode son;
+			if (rightDifference == 1) {
+				son = (AVLNode)node.getRight();
+			}
+			if (leftDifference == 1) {
+				son = (AVLNode)node.getLeft();
+			}
+
+			int rankDiff = node.getRight().getRankDifference() - node.getLeft().getRankDifference();
+			if (rankDiff == 0) {
+				return EDeleteCase.ROTATE_DEMOTE;
+			}
+			else {
+				if (son.isLeftSon()) {
+					rankDiff *=-1;
+				}
+				
+				if (rankDiff == 1) {
+					return EDeleteCase.DOUBLE;
+				}
+				if (rankDiff == -1) {
+					return EDeleteCase.ROTATE_DOUBLE_DEMOTE;
+				}
+				else {
+					System.out.println("not working - case Insert not found :(");
+				}
+			}
+		}
+		else {
+			System.out.println("not working - case Insert not found :(");
+		}
+	}
+
+	
+//	private  getDeleteLocation(int k) {
+//		if (!r.isRealNode()) {
+//			return null;
+//		}
+//		if (r.getKey() > k) {
+//			return this.search_rec(r.getLeft(), k);
+//		}
+//		if (r.getKey() < k) {
+//			return this.search_rec(r.getRight(), k);
+//		}
+//		return (AVLNode)r);
+//	}
 
 	/**
 	 * public String min()
@@ -165,11 +319,15 @@ public class AVLTree {
 	 */
 	public String min()
 	{
+		return this.minNode().getInfo();
+	}
+	
+	private AVLNode minNode() {
 		IAVLNode n = this.root;
 		while(n.getLeft().isRealNode()) {
 			n = n.getLeft();
 		}
-		return ((AVLNode)n).getInfo();
+		return (AVLNode)n;
 	}
 
 	/**
@@ -180,11 +338,15 @@ public class AVLTree {
 	 */
 	public String max()
 	{
+		return this.maxNode().getInfo();
+	}
+	
+	private AVLNode maxNode() {
 		IAVLNode n = this.root;
 		while(n.getRight().isRealNode()) {
 			n = n.getRight();
 		}
-		return ((AVLNode)n).getInfo();
+		return (AVLNode)n;
 	}
 
 	/**
@@ -415,6 +577,24 @@ public class AVLTree {
 				return false;
 			}
 			return this.parent.getLeft().getKey() ==  this.getKey();
+		}
+		
+		private void RotateLeft() {
+			IAVLNode newRoot = this.getRight();
+			this.setRight(newRoot.getLeft());
+			newRoot.setLeft(this);
+		}
+		
+		public void rotateDemote() {
+			this.demote();
+			if(this.getRight().getRankDifference() == 1) {
+				this.getRight().demote();
+				this.RotateLeft();
+			}
+			else {
+				this.getLeft().demote();
+				this.rotateRight();
+			}
 		}
 		
 		public String getText_print() {

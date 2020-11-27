@@ -10,11 +10,11 @@ import printing.TreePrinter;
  *
  */
 enum EInsertCase {
-	PROMOTE,ROTATE,DOUBLE, OK;
+	PROMOTE,ROTATE,DOUBLE, OK, ERROR;
 }
 
 enum EDeleteCase {
-	DEMOTE, ROTATE_DEMOTE, ROTATE_DOUBLE_DEMOTE, DOUBLE, OK;
+	DEMOTE, ROTATE_DEMOTE, ROTATE_DOUBLE_DEMOTE, DOUBLE, OK, ERROR;
 }
 
 public class AVLTree {
@@ -142,6 +142,8 @@ public class AVLTree {
 					node.doubleRotateInsert();
 					balanceActions+=5; 
 					break;
+				case ERROR:
+					System.out.println("not working - case Insert not found :(");
 				default:
 					return balanceActions;
 			}
@@ -152,8 +154,8 @@ public class AVLTree {
 	}
 	
 	private EInsertCase getCaseOfInsert(AVLNode node) {
-		int rightDifference = node.getRight().getRankDifference();
-		int leftDifference = node.getLeft().getRankDifference();
+		int rightDifference = AVLNode.getRankDifference(node.getRight());
+		int leftDifference = AVLNode.getRankDifference(node.getLeft());
 		if (leftDifference == 1 && rightDifference == 1) {
 			return EInsertCase.OK;
 		}
@@ -164,7 +166,7 @@ public class AVLTree {
 			if (leftDifference == 2 || rightDifference == 2) {
 				if (leftDifference == 0) {
 					AVLNode l = (AVLNode)node.getLeft();
-					if(l.getLeft().getRankDifference() == 1 && l.getRight().getRankDifference() == 2) {
+					if(AVLNode.getRankDifference(l.getLeft()) == 1 && AVLNode.getRankDifference(l.getRight()) == 2) {
 						return EInsertCase.ROTATE;
 					}
 					else {
@@ -172,10 +174,11 @@ public class AVLTree {
 					}
 				}
 				else {
-					System.out.println("not working - case Insert not found :(");
+					return EInsertCase.ERROR;
 				}
 			}
 		}
+		return EInsertCase.ERROR;
 	}
 
 	/**
@@ -243,6 +246,8 @@ public class AVLTree {
 					node.doubleRotateDelete();
 					balanceActions+=6; 
 					break;
+				case ERROR:
+					System.out.println("not working - case Insert not found :(");
 				default:
 					return balanceActions;
 			}
@@ -253,8 +258,8 @@ public class AVLTree {
 	}
 	
 	private EDeleteCase getCaseOfDelete(AVLNode node) {
-		int rightDifference = node.getRight().getRankDifference();
-		int leftDifference = node.getLeft().getRankDifference();
+		int rightDifference = AVLNode.getRankDifference(node.getRight());
+		int leftDifference = AVLNode.getRankDifference(node.getLeft());
 		if (rightDifference == 2 || leftDifference == 2) {
 			if (rightDifference - leftDifference == 0) {
 				return EDeleteCase.DEMOTE;
@@ -264,15 +269,21 @@ public class AVLTree {
 			}
 		}
 		if (rightDifference == 3 || leftDifference == 3) {
-			AVLNode son;
+			AVLNode son = null;
 			if (rightDifference == 1) {
 				son = (AVLNode)node.getRight();
 			}
-			if (leftDifference == 1) {
-				son = (AVLNode)node.getLeft();
+			else {
+				if (leftDifference == 1) {
+					son = (AVLNode)node.getLeft();
+				}
+				else {
+					return EDeleteCase.ERROR;
+				}
 			}
+			
 
-			int rankDiff = node.getRight().getRankDifference() - node.getLeft().getRankDifference();
+			int rankDiff = AVLNode.getRankDifference(node.getRight()) - AVLNode.getRankDifference(node.getLeft());
 			if (rankDiff == 0) {
 				return EDeleteCase.ROTATE_DEMOTE;
 			}
@@ -288,12 +299,12 @@ public class AVLTree {
 					return EDeleteCase.ROTATE_DOUBLE_DEMOTE;
 				}
 				else {
-					System.out.println("not working - case Insert not found :(");
+					return EDeleteCase.ERROR;
 				}
 			}
 		}
 		else {
-			System.out.println("not working - case Insert not found :(");
+			return EDeleteCase.ERROR;
 		}
 	}
 
@@ -464,7 +475,7 @@ public class AVLTree {
 	 * This class can and must be modified.
 	 * (It must implement IAVLNode)
 	 */
-	public class AVLNode implements IAVLNode{
+	public static class AVLNode implements IAVLNode{
 		private int key;
 		private String info;
 		private IAVLNode left;
@@ -579,6 +590,13 @@ public class AVLTree {
 			return this.parent.getLeft().getKey() ==  this.getKey();
 		}
 		
+		public static int getRankDifference(IAVLNode node) {
+			if (node.getParent() != null) {
+				return node.getParent().getHeight() - node.getHeight();
+			}
+			return -1;
+		}
+		
 		private void RotateLeft() {
 			IAVLNode newRoot = this.getRight();
 			this.setRight(newRoot.getLeft());
@@ -587,7 +605,7 @@ public class AVLTree {
 		
 		public void rotateDemote() {
 			this.demote();
-			if(this.getRight().getRankDifference() == 1) {
+			if(getRankDifference(this.getRight()) == 1) {
 				this.getRight().demote();
 				this.RotateLeft();
 			}

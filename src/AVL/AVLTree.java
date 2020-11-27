@@ -17,6 +17,7 @@ public class AVLTree {
 	public AVLTree() {
 		this.root = new AVLNode();
 		this.size = 0;
+		int y=0;
 	}
 	/**
 	 * public boolean empty()

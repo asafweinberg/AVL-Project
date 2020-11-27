@@ -135,7 +135,7 @@ public class AVLTree {
 					node.promote();
 					break;
 				case ROTATE:
-					node.rotate();
+					node.rotateInsert();
 					balanceActions+=2;
 					break;
 				case DOUBLE:
@@ -482,28 +482,11 @@ public class AVLTree {
 		private IAVLNode right;
 		private IAVLNode parent;
 		private int height;
-		private int rank;
 		
 		// This constructor creates a virtual leaf
 		public AVLNode() {
 			this.key = -1;
 			this.height = -1;
-			this.rank = -1;
-		}
-		
-		public void doubleRotate() {
-			// TODO Auto-generated method stub
-			
-		}
-
-		public void rotate() {
-			// TODO Auto-generated method stub
-			
-		}
-
-		public void promote() {
-			// TODO Auto-generated method stub
-			
 		}
 
 		// Constructor to create a new tree-node with two virtual sons
@@ -512,7 +495,6 @@ public class AVLTree {
 			this.info = info;
 			
 			this.height = 0;
-			this.rank = 0;
 			
 			this.left = new AVLNode();
 			this.left.setParent(this);
@@ -589,6 +571,14 @@ public class AVLTree {
 			}
 			return this.parent.getLeft().getKey() ==  this.getKey();
 		}
+
+		public void promote() {
+			this.height++;
+		}
+		
+		public void demote() {
+			this.height--;
+		}
 		
 		public static int getRankDifference(IAVLNode node) {
 			if (node.getParent() != null) {
@@ -597,26 +587,66 @@ public class AVLTree {
 			return -1;
 		}
 		
+		private void RotateRight() {
+			IAVLNode newRoot = this.getLeft();
+			this.setLeft(newRoot.getRight());
+			newRoot.setRight(this);
+		}
+		
 		private void RotateLeft() {
 			IAVLNode newRoot = this.getRight();
 			this.setRight(newRoot.getLeft());
 			newRoot.setLeft(this);
 		}
 		
+		private void DoubleRotateRight() {
+			IAVLNode newRoot = this.getLeft().getRight();
+			IAVLNode rootPrevLeft = this.getLeft();
+			
+			this.getLeft().setRight(newRoot.getLeft());
+			this.setLeft(newRoot.getRight());
+			newRoot.setRight(this);
+			newRoot.setLeft(rootPrevLeft);
+		}
+		
+		private void DoubleRotateLeft() {
+			IAVLNode newRoot = this.getRight().getLeft();
+			IAVLNode rootPrevRight = this.getRight();
+			
+			this.getRight().setLeft(newRoot.getRight());
+			this.setRight(newRoot.getLeft());
+			newRoot.setLeft(this);
+			newRoot.setRight(rootPrevRight);
+		}
+		
+		public void doubleRotateInsert() {
+			this.demote();
+			if(getRankDifference(this.getLeft()) == 0) {
+				((AVLNode)this.getLeft()).demote();
+				((AVLNode)this.getLeft().getRight()).promote();
+				this.DoubleRotateRight();
+			}
+			else {
+				((AVLNode)this.getRight()).demote();
+				((AVLNode)this.getRight().getLeft()).promote();
+				this.DoubleRotateLeft();
+			}
+		}
+		
 		public void rotateDemote() {
 			this.demote();
 			if(getRankDifference(this.getRight()) == 1) {
-				this.getRight().demote();
+				((AVLNode)this.getRight()).demote();
 				this.RotateLeft();
 			}
 			else {
-				this.getLeft().demote();
-				this.rotateRight();
+				((AVLNode)this.getLeft()).demote();
+				this.RotateRight();
 			}
 		}
 		
 		public String getText_print() {
-			return this.getKey() + " (h:" + this.height + " r:" + this.rank + ")";
+			return this.getKey() + " (h:" + this.height;
 		}
 	}
 }

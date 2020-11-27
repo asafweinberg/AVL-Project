@@ -273,6 +273,7 @@ public class AVLTree {
 			this.key = -1;
 			this.height = -1;
 			this.rank = -1;
+			int lk;
 		}
 		
 		// Constructor to create a new tree-node with two virtual sons

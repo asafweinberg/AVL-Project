@@ -308,19 +308,19 @@ public class AVLTree {
 		}
 	}
 
-	
-//	private  getDeleteLocation(int k) {
-//		if (!r.isRealNode()) {
-//			return null;
-//		}
-//		if (r.getKey() > k) {
-//			return this.search_rec(r.getLeft(), k);
-//		}
-//		if (r.getKey() < k) {
-//			return this.search_rec(r.getRight(), k);
-//		}
-//		return (AVLNode)r);
-//	}
+	//return a node with key k to delete
+ 	private AVLNode getDeleteLocation(int k) {
+ 		if (!r.isRealNode()) {
+ 			return null;
+ 		}
+ 		if (r.getKey() > k) {
+ 			return this.search_rec(r.getLeft(), k);
+ 		}
+ 		if (r.getKey() < k) {
+ 			return this.search_rec(r.getRight(), k);
+ 		}
+ 		return (AVLNode)r);
+ 	}
 
 	/**
 	 * public String min()

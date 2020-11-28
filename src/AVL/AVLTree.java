@@ -104,11 +104,14 @@ public class AVLTree {
 			return 1;	//to check if 1 or 0 with GARIBOS
 		}
 		else {
-			parent.promote();
 			return this.insertToLeaf(parent);
 		}
-		
 	}
+	
+	public int insert(int k) {
+		return this.insert(k, "number "+k);
+	}
+	
 	
 	// The method gets the root and the key needed to be inserted into the tree.
 	// returns the node which the new node will be under him.
@@ -127,19 +130,26 @@ public class AVLTree {
 	
 	private int insertToLeaf(AVLNode parent) {
 		AVLNode node = parent;
+		IAVLNode rootAfterRotate = null;
 		int balanceActions = 1;
-		EInsertCase which_case = getCaseOfInsert(parent);
-		while (node!=this.root ) {
+		EInsertCase which_case = null;
+		while (node != null ) {
+			which_case = getCaseOfInsert(node);
 			switch(which_case) {
 				case PROMOTE:
 					node.promote();
+					balanceActions++;
 					break;
 				case ROTATE:
-					node.rotateInsert();
+					rootAfterRotate = node.rotateInsert();
 					balanceActions+=2;
+					if (this.root == node)
+						this.setRoot(rootAfterRotate);
 					break;
 				case DOUBLE:
-					node.doubleRotateInsert();
+					rootAfterRotate = node.doubleRotateInsert();
+					if (this.root == node)
+						this.setRoot(rootAfterRotate);
 					balanceActions+=5; 
 					break;
 				case ERROR:
@@ -148,8 +158,7 @@ public class AVLTree {
 					return balanceActions;
 			}
 			node = (AVLNode)node.getParent();
-			which_case = getCaseOfInsert(node);
-		}		
+		}
 		return balanceActions;		
 	}
 	
@@ -173,6 +182,15 @@ public class AVLTree {
 						return EInsertCase.DOUBLE;
 					}
 				}
+				if (rightDifference == 0) {
+					AVLNode r = (AVLNode)node.getRight();
+					if(AVLNode.getRankDifference(r.getRight()) == 1 && AVLNode.getRankDifference(r.getLeft()) == 2) {
+						return EInsertCase.ROTATE;
+					}
+					else {
+						return EInsertCase.DOUBLE;
+					}
+				}
 				else {
 					return EInsertCase.ERROR;
 				}
@@ -190,72 +208,72 @@ public class AVLTree {
 	 * demotion/rotation - counted as one rebalnce operation, double-rotation is counted as 2.
 	 * returns -1 if an item with key k was not found in the tree.
 	 */
-	public int delete(int k)
-	{
-		if (this.empty()) {
-			return 0;
-		}
-		AVLNode nodeToDelete = this.getDeleteLocation(k);
-		AVLNode replacement = this.getNodeToReplace(nodeToDelete);
-		
-		nodeToDelete.replace(replacement);
-		
-		AVLNode parent = (AVLNode)nodeToDelete.getParent();
-		boolean deletingLeaf = nodeToDelete.isLeaf();
-		
-		nodeToDelete.delete();
-		
-		int balanceActions;
-		
-		if(deletingLeaf) {
-			balanceActions = this.deleteRebalance(parent);
-		}
-		else {
-			balanceActions = this.deleteRebalance(parent);
-		}
-		
-		if (k == this.min) {
-			this.min = this.minNode().getKey();
-		}
-		if (k == this.max) {
-			this.max = this.minNode().getKey();
-		}
-		
-		return balanceActions;
-	}
-	
-	private int deleteRebalance(AVLNode parent) {
-		AVLNode node = parent;
-		int balanceActions = 1;
-		EDeleteCase which_case = getCaseOfDelete(parent);
-		while (node != this.root ) {
-			switch(which_case) {
-				case DEMOTE:
-					node.demote();
-					balanceActions++;
-					break;
-				case ROTATE_DEMOTE:
-					node.rotateDemote();
-					balanceActions+=3;
-					break;
-				case ROTATE_DOUBLE_DEMOTE:
-					node.rotateDoubleDemote();
-					balanceActions+=3;
-					break;
-				case DOUBLE:
-					node.doubleRotateDelete();
-					balanceActions+=6; 
-					break;
-				case ERROR:
-					System.out.println("not working - case Insert not found :(");
-				default:
-					return balanceActions;
-			}
-			node = (AVLNode)node.getParent();
-			which_case = getCaseOfDelete(node);
-		}		
-		return balanceActions;		
-	}
+//	public int delete(int k)
+//	{
+//		if (this.empty()) {
+//			return 0;
+//		}
+//		AVLNode nodeToDelete = this.getDeleteLocation(k);
+//		AVLNode replacement = this.getNodeToReplace(nodeToDelete);
+//		
+//		nodeToDelete.replace(replacement);
+//		
+//		AVLNode parent = (AVLNode)nodeToDelete.getParent();
+//		boolean deletingLeaf = nodeToDelete.isLeaf();
+//		
+//		nodeToDelete.delete();
+//		
+//		int balanceActions;
+//		
+//		if(deletingLeaf) {
+//			balanceActions = this.deleteRebalance(parent);
+//		}
+//		else {
+//			balanceActions = this.deleteRebalance(parent);
+//		}
+//		
+//		if (k == this.min) {
+//			this.min = this.minNode().getKey();
+//		}
+//		if (k == this.max) {
+//			this.max = this.minNode().getKey();
+//		}
+//		
+//		return balanceActions;
+//	}
+//	
+//	private int deleteRebalance(AVLNode parent) {
+//		AVLNode node = parent;
+//		int balanceActions = 1;
+//		EDeleteCase which_case = null;
+//		while (node != null ) {
+//			which_case = getCaseOfDelete(node);
+//			switch(which_case) {
+//				case DEMOTE:
+//					node.demote();
+//					balanceActions++;
+//					break;
+//				case ROTATE_DEMOTE:
+//					node.rotateDemote();
+//					balanceActions+=3;
+//					break;
+//				case ROTATE_DOUBLE_DEMOTE:
+//					node.rotateDoubleDemote();
+//					balanceActions+=3;
+//					break;
+//				case DOUBLE:
+//					node.doubleRotateDelete();
+//					balanceActions+=6; 
+//					break;
+//				case ERROR:
+//					System.out.println("not working - case Insert not found :(");
+//				default:
+//					return balanceActions;
+//			}
+//			node = (AVLNode)node.getParent();
+//		}		
+//		return balanceActions;		
+//	}
 	
 	private EDeleteCase getCaseOfDelete(AVLNode node) {
 		int rightDifference = AVLNode.getRankDifference(node.getRight());
@@ -418,6 +436,11 @@ public class AVLTree {
 	public IAVLNode getRoot()
 	{
 		return this.root;
+	}
+	
+	private void setRoot(IAVLNode r) {
+		this.root = (AVLNode)r;
+		r.setParent(null);
 	}
 	/**
 	 * public string split(int x)
@@ -587,49 +610,87 @@ public class AVLTree {
 			return -1;
 		}
 		
-		private void RotateRight() {
+		private void handleRotationParent(IAVLNode newSon) {
+			if (this.getParent() != null) {
+				if(this.isLeftSon()) {
+					this.getParent().setLeft(newSon);
+				}
+				else {
+					this.getParent().setRight(newSon);
+				}
+			}
+		}
+		
+		private IAVLNode RotateRight() {
 			IAVLNode newRoot = this.getLeft();
+			handleRotationParent(newRoot);
+			
 			this.setLeft(newRoot.getRight());
 			newRoot.setRight(this);
+			
+			return newRoot;
 		}
 		
-		private void RotateLeft() {
+		private IAVLNode RotateLeft() {
 			IAVLNode newRoot = this.getRight();
+			handleRotationParent(newRoot);
+			
 			this.setRight(newRoot.getLeft());
 			newRoot.setLeft(this);
+			
+			return newRoot;
 		}
 		
-		private void DoubleRotateRight() {
+		private IAVLNode DoubleRotateRight() {
 			IAVLNode newRoot = this.getLeft().getRight();
 			IAVLNode rootPrevLeft = this.getLeft();
+			handleRotationParent(newRoot);
 			
 			this.getLeft().setRight(newRoot.getLeft());
 			this.setLeft(newRoot.getRight());
 			newRoot.setRight(this);
 			newRoot.setLeft(rootPrevLeft);
+			
+			return newRoot;
 		}
 		
-		private void DoubleRotateLeft() {
+		private IAVLNode DoubleRotateLeft() {
 			IAVLNode newRoot = this.getRight().getLeft();
 			IAVLNode rootPrevRight = this.getRight();
+			handleRotationParent(newRoot);
 			
 			this.getRight().setLeft(newRoot.getRight());
 			this.setRight(newRoot.getLeft());
 			newRoot.setLeft(this);
 			newRoot.setRight(rootPrevRight);
+			
+			return newRoot;
 		}
 		
-		public void doubleRotateInsert() {
-			this.demote();
+		public IAVLNode rotateInsert() {
 			if(getRankDifference(this.getLeft()) == 0) {
-				((AVLNode)this.getLeft()).demote();
-				((AVLNode)this.getLeft().getRight()).promote();
-				this.DoubleRotateRight();
+				this.demote();
+				return this.RotateRight();
 			}
 			else {
+				this.demote();
+				return this.RotateLeft();
+			}
+			
+		}
+		
+		public IAVLNode doubleRotateInsert() {
+			if(getRankDifference(this.getLeft()) == 0) {
+				this.demote();
+				((AVLNode)this.getLeft()).demote();
+				((AVLNode)this.getLeft().getRight()).promote();
+				return this.DoubleRotateRight();
+			}
+			else {
+				this.demote();
 				((AVLNode)this.getRight()).demote();
 				((AVLNode)this.getRight().getLeft()).promote();
-				this.DoubleRotateLeft();
+				return this.DoubleRotateLeft();
 			}
 		}
 		
@@ -646,7 +707,7 @@ public class AVLTree {
 		}
 		
 		public String getText_print() {
-			return this.getKey() + " (h:" + this.height;
+			return this.getKey() + " (h:" + this.height + ")";
 		}
 	}
 }

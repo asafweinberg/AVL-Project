@@ -1,4 +1,6 @@
 package AVL;
+import java.util.Stack;
+
 import printing.TreePrinter;
 
 /**
@@ -386,16 +388,13 @@ public class AVLTree {
 	 */
 	public int[] keysToArray()
 	{
-		int[] arr = new int[this.size];
-		return arr;
+		int[] keys = new int[this.size];
+		IAVLNode[] nodesArray = this.getSortedNodesArray();
+		for (int i = 0; i < nodesArray.length; i++) {
+			keys[i] = nodesArray[i].getKey();
+		}
 		
-		//check if lists are allowed !!!!!!!
-		
-//		private int[] keysToArray_rec(IAVLNode node, int[] keys) {
-//			if (node.isRealNode()) {
-//				keysToArray_rec(node.getLeft(), keys);
-//			}
-//		}
+		return keys;
 	}
 
 	/**
@@ -407,8 +406,32 @@ public class AVLTree {
 	 */
 	public String[] infoToArray()
 	{
-		String[] arr = new String[this.size];
-		return arr;
+		String[] infos = new String[this.size];
+		IAVLNode[] nodesArray = this.getSortedNodesArray();
+		for (int i = 0; i < nodesArray.length; i++) {
+			infos[i] = ((AVLNode)nodesArray[i]).getInfo();
+		}
+		
+		return infos;
+	}
+	
+	private IAVLNode[] getSortedNodesArray() {
+		IAVLNode[] nodesArray = new IAVLNode[this.size];
+		Stack<IAVLNode> s = new Stack<IAVLNode>();
+		this.getSortedNodesArray_rec(this.root, s);
+		for (int i = nodesArray.length - 1; i >= 0; i--) {
+			nodesArray[i] = s.pop();
+		}
+		return nodesArray;
+	}
+	
+	private void getSortedNodesArray_rec(IAVLNode node, Stack<IAVLNode> s) {
+		if(!node.isRealNode()) {
+			return;
+		}
+		getSortedNodesArray_rec(node.getLeft(), s);
+		s.push(node);
+		getSortedNodesArray_rec(node.getRight(), s);
 	}
 	
 

@@ -245,8 +245,9 @@ public class AVLTree {
 //	private int deleteRebalance(AVLNode parent) {
 //		AVLNode node = parent;
 //		int balanceActions = 1;
-//		EDeleteCase which_case = getCaseOfDelete(parent);
-//		while (node != this.root ) {
+//		EDeleteCase which_case = null;
+//		while (node != null ) {
+//			which_case = getCaseOfDelete(node);
 //			switch(which_case) {
 //				case DEMOTE:
 //					node.demote();
@@ -270,7 +271,6 @@ public class AVLTree {
 //					return balanceActions;
 //			}
 //			node = (AVLNode)node.getParent();
-//			which_case = getCaseOfDelete(node);
 //		}		
 //		return balanceActions;		
 //	}

@@ -1,5 +1,7 @@
 package AVL;
 
+import java.util.Arrays;
+
 import AVL.AVLTree.AVLNode;
 import AVL.AVLTree.IAVLNode;
 import printing.TreePrinter;
@@ -41,6 +43,9 @@ public class Tests {
 			tree.printTree();
 			System.out.print(e);
 		}
+		System.out.println(Arrays.toString(tree.keysToArray()));
+		System.out.println(Arrays.toString(tree.infoToArray()));
+		System.out.println("success");
 	}
 	
 	public static void insertOneTest(AVLTree tree, int key, int result) throws Exception {

@@ -22,14 +22,14 @@ enum EDeleteCase {
 public class AVLTree {
 	private AVLNode root;
 	private int size;
-	private int min;
-	private int max;
+	private IAVLNode min;
+	private IAVLNode max;
 	
 	public AVLTree() {
 		this.root = new AVLNode();
 		this.size = 0;
-		this.max = Integer.MIN_VALUE;
-		this.min = Integer.MAX_VALUE;
+		this.max = new AVLNode(Integer.MIN_VALUE, "");
+		this.min = new AVLNode(Integer.MIN_VALUE, "");
 	}
 	/**
 	 * public boolean empty()
@@ -62,7 +62,7 @@ public class AVLTree {
 		if (r.getKey() < k) {
 			return this.search_rec(r.getRight(), k);
 		}
-		return ((AVLNode)r).getInfo();
+		return ((AVLNode)r).getValue();
 	}
 
 	/**
@@ -75,12 +75,16 @@ public class AVLTree {
 	 * returns -1 if an item with key k already exists in the tree.
 	 */
 	public int insert(int k, String i) {
-		this.max = Math.max(k, this.max);
-		this.min = Math.min(k, this.min);
+		AVLNode nodeToInsert = new AVLNode(k, i);
+		
+		if (k < this.min.getKey())
+			this.min = nodeToInsert;
+		if (k > this.max.getKey())
+			this.max = nodeToInsert;
 		
 		if (this.empty())
 		{
-			this.root = new AVLNode(k, i);
+			this.root = nodeToInsert;
 			this.size++;
 			return 1;
 		}
@@ -92,12 +96,11 @@ public class AVLTree {
 		
 		boolean isParentLeaf = parent.isLeaf();
 		
-		AVLNode node = new AVLNode(k, i);
 		if (parent.getKey() > k) {
-			parent.setLeft(node);
+			parent.setLeft(nodeToInsert);
 		}
 		else {
-			parent.setRight(node);
+			parent.setRight(nodeToInsert);
 		}
 		
 		this.size++;
@@ -350,10 +353,10 @@ public class AVLTree {
 	 */
 	public String min()
 	{
-		return this.minNode().getInfo();
+		return this.min.getValue();
 	}
 	
-	private AVLNode minNode() {
+	private AVLNode getMinNode() {
 		IAVLNode n = this.root;
 		while(n.getLeft().isRealNode()) {
 			n = n.getLeft();
@@ -369,10 +372,10 @@ public class AVLTree {
 	 */
 	public String max()
 	{
-		return this.maxNode().getInfo();
+		return this.max.getValue();
 	}
 	
-	private AVLNode maxNode() {
+	private AVLNode getMaxNode() {
 		IAVLNode n = this.root;
 		while(n.getRight().isRealNode()) {
 			n = n.getRight();
@@ -409,7 +412,7 @@ public class AVLTree {
 		String[] infos = new String[this.size];
 		IAVLNode[] nodesArray = this.getSortedNodesArray();
 		for (int i = 0; i < nodesArray.length; i++) {
-			infos[i] = ((AVLNode)nodesArray[i]).getInfo();
+			infos[i] = ((AVLNode)nodesArray[i]).getValue();
 		}
 		
 		return infos;
@@ -551,14 +554,11 @@ public class AVLTree {
 		
 		public int getKey()
 		{
-			return this.key; // to be replaced by student code
-		}
-		public String getInfo() {
-			return this.info;
+			return this.key;
 		}
 		public String getValue()
 		{
-			return null; // to be replaced by student code
+			return this.info;
 		}
 		public void setLeft(IAVLNode node)
 		{
@@ -567,7 +567,7 @@ public class AVLTree {
 		}
 		public IAVLNode getLeft()
 		{
-			return this.left; // to be replaced by student code
+			return this.left;
 		}
 		public void setRight(IAVLNode node)
 		{
@@ -584,20 +584,20 @@ public class AVLTree {
 		}
 		public IAVLNode getParent()
 		{
-			return this.parent; // to be replaced by student code
+			return this.parent;
 		}
 		// Returns True if this is a non-virtual AVL node
 		public boolean isRealNode()
 		{
-			return this.getHeight() != -1; // to be replaced by student code
+			return this.getHeight() != -1;
 		}
 		public void setHeight(int height)
 		{
-			return; // to be replaced by student code
+			this.height = height;
 		}
 		public int getHeight()
 		{
-			return this.height; // to be replaced by student code
+			return this.height;
 		}
 		
 		public boolean isLeaf() {

@@ -223,11 +223,11 @@ public class AVLTree {
 //			balanceActions = this.deleteRebalance(parent);
 //		}
 		
-		if (k == this.min) {
-			this.min = this.minNode().getKey();
+		if (k == this.min.getKey()) {
+			this.min = this.getMinNode();
 		}
-		if (k == this.max) {
-			this.max = this.minNode().getKey();
+		if (k == this.max.getKey()) {
+			this.max = this.getMaxNode();
 		}
 		
 		return balanceActions;
@@ -237,7 +237,7 @@ public class AVLTree {
 		AVLNode node = parent;
 		int balanceActions = 1;
 		EDeleteCase which_case = getCaseOfDelete(parent);
-		while (node != this.root ) {
+		while (node != null ) {
 			switch(which_case) {
 				case DEMOTE:
 					node.demote();
@@ -247,18 +247,21 @@ public class AVLTree {
 					node.rotateDemote();
 					balanceActions+=3;
 					break;
-				case ROTATE_DOUBLE_DEMOTE:
+				case ROTATE_DOUBLE_DEMOTE:	//CASE 3 after it the rank differences are 1 1 - we need to go one more parent up
 					node.rotateDoubleDemote();
+					node = (AVLNode)node.getParent(); //not sure
 					balanceActions+=3;
 					break;
 				case DOUBLE:
 					node.doubleRotateDelete();
+					node = (AVLNode)node.getParent(); //not sure
 					balanceActions+=6; 
 					break;
 				case ERROR:
 					System.out.println("not working - case Insert not found :(");
+					break;
 				default:
-					return balanceActions;
+					return balanceActions;	//why ?
 			}
 			node = (AVLNode)node.getParent();
 			which_case = getCaseOfDelete(node);
@@ -271,10 +274,10 @@ public class AVLTree {
 		int leftDifference = AVLNode.getRankDifference(node.getLeft());
 		if (rightDifference == 2 || leftDifference == 2) {
 			if (rightDifference - leftDifference == 0) {
-				return EDeleteCase.DEMOTE;
+				return EDeleteCase.DEMOTE;			//CASE 1
 			}
 			else {
-				return EDeleteCase.OK;
+				return EDeleteCase.OK;				
 			}
 		}
 		if (rightDifference == 3 || leftDifference == 3) {
@@ -394,11 +397,13 @@ public class AVLTree {
 	}
 	
 	private AVLNode getMinNode() {
-		IAVLNode n = this.root;
-		while(n.getLeft().isRealNode()) {
-			n = n.getLeft();
-		}
-		return (AVLNode)n;
+		
+		return minNodeFromNode(this.root);
+//		IAVLNode n = this.root;
+//		while(n.getLeft().isRealNode()) {
+//			n = n.getLeft();
+//		}
+//		return (AVLNode)n;
 	}
 	
 	private AVLNode minNodeFromNode(IAVLNode node) {
@@ -746,7 +751,32 @@ public class AVLTree {
 			}
 		}
 		
-	
+		public void	rotateDoubleDemote() {
+			this.demote();
+			this.rotateDemote();
+		}
+		
+		public void doubleRotateDelete() {
+			if(getRankDifference(this.getRight()) == 1) {
+				AVLNode y= (AVLNode) this.getRight();
+				this.demote();
+				this.demote();			//z -2
+				y.demote();				 //y -1
+				((AVLNode)y.getLeft()).promote(); //a +1
+				y.RotateRight();
+				this.RotateLeft();
+			}
+			else {
+				AVLNode y= (AVLNode) this.getLeft();
+				this.demote();
+				this.demote();			//z -2
+				y.demote();				 //y -1
+				((AVLNode)y.getRight()).promote(); //a +1
+				y.RotateLeft();
+				this.RotateRight();
+			}
+		}
+		
 		public String getText_print() {
 			return this.getKey() + " (h:" + this.height;
 		}

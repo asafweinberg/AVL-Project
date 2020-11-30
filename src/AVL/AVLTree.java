@@ -251,7 +251,7 @@ public class AVLTree {
 		if (k == this.max.getKey()) {
 			this.max = this.getMaxNode();
 		}
-		
+		this.size--;
 		return balanceActions;
 	}
 	

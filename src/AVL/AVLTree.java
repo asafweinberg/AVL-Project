@@ -109,7 +109,6 @@ public class AVLTree {
 			return 1;	//to check if 1 or 0 with GARIBOS
 		}
 		else {
-			parent.promote();
 			return this.insertToLeaf(parent);
 		}
 		
@@ -277,7 +276,7 @@ public class AVLTree {
 				case DOUBLE:
 					node.doubleRotateDelete();
 					node = (AVLNode)node.getParent(); //not sure
-					balanceActions+=6; 
+					balanceActions+=6;
 					break;
 				case ERROR:
 					System.out.println("not working - case Insert not found :(");

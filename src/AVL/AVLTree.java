@@ -705,6 +705,18 @@ public class AVLTree {
 			newRoot.setLeft(this);
 		}
 		
+		public IAVLNode rotateInsert() {
+			if(getRankDifference(this.getLeft()) == 0) {
+				this.demote();
+				return this.RotateRight();
+			}
+			else {
+				this.demote();
+				return this.RotateLeft();
+			}
+			
+		}
+		
 		private void DoubleRotateRight() {
 			IAVLNode newRoot = this.getLeft().getRight();
 			IAVLNode rootPrevLeft = this.getLeft();

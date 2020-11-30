@@ -751,6 +751,7 @@ public class AVLTree {
 			return newRoot;
 		}
 		
+
 		private IAVLNode DoubleRotateRight() {
 			IAVLNode newRoot = this.getLeft().getRight();
 			IAVLNode rootPrevLeft = this.getLeft();

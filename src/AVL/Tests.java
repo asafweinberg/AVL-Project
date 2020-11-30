@@ -49,7 +49,7 @@ public class Tests {
 	}
 	
 	public static void insertOneTest(AVLTree tree, int key, int result) throws Exception {
-		int actions = tree.insert(key);
+		int actions = tree.insert(key,"0");
 		if (actions != result) {
 			System.out.println("Number of actions for " + key + " is incorrect - expeceted: " + result + ", result: " + actions);
 			throw new Exception();

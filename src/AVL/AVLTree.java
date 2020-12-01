@@ -225,16 +225,19 @@ public class AVLTree {
 		if (nodeToDelete==null)
 			return -1;
 		
-		if(nodeToDelete.isLeaf() ) {
-			AVLNode replacement = (AVLNode) this.getNodeToReplace(nodeToDelete);
+		AVLNode replacement=null;
+		if(nodeToDelete.isUnaryNode() ) {  
+			replacement = (AVLNode) this.getNodeToReplace(nodeToDelete);
 			this.replace(nodeToDelete,replacement);
+			nodeToDelete=replacement;
 		}
 		
 		AVLNode parent = (AVLNode)nodeToDelete.getParent();
 //		boolean deletingLeaf = nodeToDelete.isLeaf();
 		
 		this.deleteNode(nodeToDelete);
-		
+//		System.out.println("after one delete:");
+//		this.printTree();
 		int balanceActions;
 		
 //		if(deletingLeaf) {
@@ -256,36 +259,43 @@ public class AVLTree {
 	
 	private int deleteRebalance(AVLNode parent) {
 		AVLNode node = parent;
+		IAVLNode rootAfterRotate = null;
 		int balanceActions = 1;
-		EDeleteCase which_case = getCaseOfDelete(parent);
 		while (node != null ) {
+			EDeleteCase which_case = getCaseOfDelete(node);
 			switch(which_case) {
 				case DEMOTE:
 					node.demote();
 					balanceActions++;
 					break;
-				case ROTATE_DEMOTE:
-					node.rotateDemote();
+				case ROTATE_DEMOTE:		
+					rootAfterRotate= node.rotateDemote();
 					balanceActions+=3;
+					if (this.root == node)
+						this.setRoot(rootAfterRotate);
+					node = (AVLNode) rootAfterRotate; //not sure
 					break;
 				case ROTATE_DOUBLE_DEMOTE:	//CASE 3 after it the rank differences are 1 1 - we need to go one more parent up
-					node.rotateDoubleDemote();
-					node = (AVLNode)node.getParent(); //not sure
+					rootAfterRotate= node.rotateDoubleDemote();
 					balanceActions+=3;
+					if (this.root == node)
+						this.setRoot(rootAfterRotate);
+					node = (AVLNode) rootAfterRotate; //not sure
 					break;
 				case DOUBLE:
-					node.doubleRotateDelete();
-					node = (AVLNode)node.getParent(); //not sure
+					rootAfterRotate= node.doubleRotateDelete();
 					balanceActions+=6;
+					if (this.root == node)
+						this.setRoot(rootAfterRotate);
+					node = (AVLNode) rootAfterRotate; //not sure
 					break;
 				case ERROR:
-					System.out.println("not working - case Insert not found :(");
+					System.out.println("not working - case Delete not found :(");
 					break;
 				default:
-					return balanceActions;	//why ?
+					return balanceActions;	//OK
 			}
 			node = (AVLNode)node.getParent();
-			which_case = getCaseOfDelete(node);
 		}		
 		return balanceActions;		
 	}
@@ -295,10 +305,10 @@ public class AVLTree {
 		int leftDifference = AVLNode.getRankDifference(node.getLeft());
 		if (rightDifference == 2 || leftDifference == 2) {
 			if (rightDifference - leftDifference == 0) {
-				return EDeleteCase.DEMOTE;			//CASE 1
+				return EDeleteCase.DEMOTE;			//CASE 1 - 2 2
 			}
 			else {
-				return EDeleteCase.OK;				
+				return EDeleteCase.OK;				//CASE 1 - 1 2
 			}
 		}
 		if (rightDifference == 3 || leftDifference == 3) {
@@ -316,7 +326,7 @@ public class AVLTree {
 			}
 			
 
-			int rankDiff = AVLNode.getRankDifference(node.getRight()) - AVLNode.getRankDifference(node.getLeft());
+			int rankDiff = AVLNode.getRankDifference(son.getRight()) - AVLNode.getRankDifference(son.getLeft());
 			if (rankDiff == 0) {
 				return EDeleteCase.ROTATE_DEMOTE;
 			}
@@ -350,9 +360,11 @@ public class AVLTree {
  					return iteratorNode;
  				if (iteratorNode.getKey() > k) {
  					iteratorNode=iteratorNode.getLeft();
+ 					continue;
  	 			}
  				if (iteratorNode.getKey() < k) {
  					iteratorNode=iteratorNode.getRight();
+ 					continue;
  	 			}
  			}
  			return null;		
@@ -364,28 +376,93 @@ public class AVLTree {
  			return toDelete;
  		return successor;
  	}
+ 	private void replace(AVLNode deleted, AVLNode replacement) { //returns the one which needs to be deleted, in the original replacement place with
+ 		int delKey=deleted.getKey();
+ 		String delInfo=deleted.getValue();
+ 		deleted.setKey(replacement.getKey());
+ 		deleted.setInfo(replacement.getValue());
+ 		replacement.setKey(delKey);
+ 		replacement.setInfo(delInfo);
+ 	}
  	
-	private void replace(AVLNode deleted, AVLNode replacement) { //returns the one which needs to be deleted, in the original replacement place with 
-		int heightDeleted =deleted.getHeight();
-		int heightRep=replacement.getHeight();
-		//rep parameters
-		AVLNode repParent = (AVLNode) replacement.getParent();
-		AVLNode repRight = (AVLNode) replacement.getRight();
-		AVLNode repLeft = (AVLNode) replacement.getLeft();
-		
-		replacement.setParent(deleted.getParent());
-		replacement.setRight(deleted.getRight());
-		replacement.setLeft(deleted.getLeft());
-		replacement.setHeight(heightDeleted);
-		deleted.setHeight(heightRep);
-		deleted.setRight(repRight);
-		deleted.setLeft(repLeft);
-		deleted.setParent(repParent);
-	}
+//		
+//	private void replace(AVLNode deleted, AVLNode replacement) { //returns the one which needs to be deleted, in the original replacement place with 
+//		int heightDeleted =deleted.getHeight();
+//		int heightRep=replacement.getHeight();
+//		AVLNode repRight;
+//		AVLNode repParent;
+//		AVLNode repLeft;
+//				
+//		replacement.setHeight(heightDeleted);
+//		deleted.setHeight(heightRep);
+//		
+//		if(replacement==deleted.getRight()) { //close case 1
+//			
+//			AVLNode deletedOtherSon=(AVLNode) deleted.getLeft();
+//			repRight = (AVLNode) replacement.getRight();
+//			repLeft = (AVLNode) replacement.getLeft();
+//			
+//			replacement.setParent(deleted.getParent());
+//			replacement.setRightForRep(deleted); //new
+//			replacement.setLeftForRep(deleted.getLeft());
+//			
+//			deleted.setRightForRep(repRight);
+//			deleted.setLeftForRep(repLeft);
+//			deleted.setParent(replacement);	//new
+////			if (deletedOtherSon.isRealNode())
+//				deletedOtherSon.setParent(replacement);
+////			if (repRight.isRealNode())
+//				repRight.setParent(deleted);
+////			if (repLeft.isRealNode())
+//				repLeft.setParent(deleted);
+//			System.out.println("inside replace this is how it looks");
+//			this.printTree();
+//			return;
+//		}
+//		
+//		if(deleted==replacement.getLeft()) {
+//			repRight = (AVLNode) replacement.getRight();
+//			repParent = (AVLNode) replacement.getParent();
+//			AVLNode repOtherSon=(AVLNode) replacement.getRight();
+//			AVLNode delRight= (AVLNode) deleted.getRight();
+//			AVLNode delLeft= (AVLNode) deleted.getLeft();
+//			
+//			replacement.setParent(deleted); //new
+//			replacement.setRightForRep(deleted.getRight()); 
+//			replacement.setLeftForRep(deleted.getLeft());
+//			
+//			deleted.setRightForRep(repRight);
+//			deleted.setLeftForRep(replacement); //new
+//			deleted.setParent(repParent);	
+//			
+//			
+//			repOtherSon.setParent(deleted);
+//			delRight.setParent(replacement);
+//			delLeft.setParent(replacement);
+//			System.out.println("inside replace this is how it looks");
+//			this.printTree();
+//			return;
+//		}
+//		
+//		//rep parameters
+//		repParent = (AVLNode) replacement.getParent();
+//		repRight = (AVLNode) replacement.getRight();
+//		repLeft = (AVLNode) replacement.getLeft();
+//		
+//		replacement.setParent(deleted.getParent());
+//		replacement.setRightForRep(deleted.getRight());
+//		replacement.setLeftForRep(deleted.getLeft());
+//		
+//		deleted.setRightForRep(repRight);
+//		deleted.setLeftForRep(repLeft);
+//		deleted.setParent(repParent);
+//		System.out.println("inside replace this is how it looks");
+//		this.printTree();	
+//	}
 	
 	private void deleteNode(AVLNode nodeToDelete) { //delete when it is not a binary node!
-		if(nodeToDelete.getRight().isRealNode() && nodeToDelete.getLeft().isRealNode() ) { // if it has 2 children
-			System.out.println("error it is a binary tree that you try to delete");
+		if(nodeToDelete.isUnaryNode() ) { // if it has 2 children
+			System.out.println("error it is a binary node that you try to delete");
 			return;
 		}
 		AVLNode parent=(AVLNode) nodeToDelete.getParent();
@@ -457,7 +534,7 @@ public class AVLTree {
 	private AVLNode SuccessorOf(IAVLNode node) {
 		
 		if (node.getRight().isRealNode()) {
-			return this.minNodeFromNode(node);
+			return this.minNodeFromNode(node.getRight());
 		}
 		IAVLNode parent=node.getParent();
 		while (parent!=null && parent.getRight()==node) {
@@ -623,7 +700,12 @@ public class AVLTree {
 			this.height = -1;
 		}
 
-		
+
+		public boolean isUnaryNode() {
+			return this.getRight().isRealNode() && this.getLeft().isRealNode();
+		}
+
+
 
 		// Constructor to create a new tree-node with two virtual sons
 		public AVLNode(int key, String info) {
@@ -643,15 +725,32 @@ public class AVLTree {
 		{
 			return this.key;
 		}
+		
+		public void setKey(int key)
+		{
+			this.key = key; 
+		}
+		
 		public String getValue()
 		{
 			return this.info;
+		}
+		
+		public void setInfo(String val)
+		{
+			this.info = val; 
 		}
 		public void setLeft(IAVLNode node)
 		{
 			this.left = node; 
 			node.setParent(this);
 		}
+		
+		public void setLeftForRep(IAVLNode node)
+		{
+			this.left = node; 
+		}
+		
 		public IAVLNode getLeft()
 		{
 			return this.left;
@@ -661,6 +760,12 @@ public class AVLTree {
 			this.right = node;
 			node.setParent(this);
 		}
+		
+		public void setRightForRep(IAVLNode node)
+		{
+			this.right = node;
+		}
+		
 		public IAVLNode getRight()
 		{
 			return this.right; 
@@ -805,24 +910,27 @@ public class AVLTree {
 			}
 		}
 		
-		public void rotateDemote() {
-			this.demote();
+		public IAVLNode rotateDemote() {
+			
 			if(getRankDifference(this.getRight()) == 1) {
 				((AVLNode)this.getRight()).demote();
-				this.RotateLeft();
+				this.demote();
+				return this.RotateLeft();
 			}
 			else {
+				this.demote();
 				((AVLNode)this.getLeft()).demote();
-				this.RotateRight();
+				return this.RotateRight();
 			}
 		}
 		
-		public void	rotateDoubleDemote() {
+		public IAVLNode	rotateDoubleDemote() {
+			AVLNode temp =(AVLNode) this.rotateDemote();
 			this.demote();
-			this.rotateDemote();
+			return temp;
 		}
 		
-		public void doubleRotateDelete() {
+		public IAVLNode doubleRotateDelete() {
 			if(getRankDifference(this.getRight()) == 1) {
 				AVLNode y= (AVLNode) this.getRight();
 				this.demote();
@@ -830,7 +938,7 @@ public class AVLTree {
 				y.demote();				 //y -1
 				((AVLNode)y.getLeft()).promote(); //a +1
 				y.RotateRight();
-				this.RotateLeft();
+				return this.RotateLeft();
 			}
 			else {
 				AVLNode y= (AVLNode) this.getLeft();
@@ -839,7 +947,7 @@ public class AVLTree {
 				y.demote();				 //y -1
 				((AVLNode)y.getRight()).promote(); //a +1
 				y.RotateLeft();
-				this.RotateRight();
+				return this.RotateRight();
 			}
 		}
 		

@@ -29,7 +29,13 @@ public class Tests {
 		
 		int[] ins = new int[]{10,2,12,1,11,3,4,5,6,16,15,14,13,19,18,17,7,8,9};
 		int[] del = new int[]{10,14,13,19,18,17,7,8,9};
+
 		int[] ins2 = new int[] {10,9,8,7,6,5,4,3,2,1};
+		
+//		balancingTest(ins, del, 5);
+		
+//		joinTest();
+		splitTest();
 //		deletecheckcase1_2();
 //		balancingTest(ins, del, 9);
 		int []a= {10,9,8,7,6,5};
@@ -304,14 +310,13 @@ public class Tests {
 			}
 		}
 		
-//		tree.printTree();
+		tree.printTree();
 		
 		for (int i = 0; i < toDelete.length; i++) {
 			try {
 				if ( toDelete[i] == breakOnKey) {
 					boolean MARK_BREAK_POINT_FOR_DEBUG = true;
-//					tree.printTree();
-//					System.out.println("this is before "+breakOnKey);
+					tree.printTree();
 				}
 				tree.delete(toDelete[i]);
 //				System.out.println("this is after "+toDelete[i]);
@@ -320,12 +325,52 @@ public class Tests {
 			}
 			catch (Exception e) {
 				System.out.println("failed on Delete(" + toDelete[i] + ")  -  Error: " + e);
-				tree.printTree();
+//				tree.printTree();
 				return;
 			}
 		}
 		tree.printTree();
 	}
+	
+	public static void joinTest() throws Exception {
+		AVLTree s = createTree(new int[]{10,2,12,1,11});
+		AVLTree b = createTree(new int[]{23, 21, 30, 24, 39, 33, 34, 235});
+		b.join(new AVLNode(20, "x"), s);
+		try {
+			isValidTree(b);
+		}
+		catch (Exception e) {
+			System.out.println("join tree is not valid: " + e);
+			return;
+		}
+		
+		b.printTree();
+	}
+	
+	public static void splitTest() throws Exception {
+		AVLTree s = createTree(new int[]{10,2,12,1,11,4,5,13, 23, 21, 30, 24, 39, 33, 34, 235});
+		AVLTree[] res =  s.split(11);
+		try {
+			isValidTree(res[0]);
+		}
+		catch (Exception e) {
+			System.out.println("left split tree is not valid: " + e);
+			return;
+		}
+		
+		try {
+			isValidTree(res[1]);
+		}
+		catch (Exception e) {
+			System.out.println("left split tree is not valid: " + e);
+			return;
+		}
+		
+		res[0].printTree();
+		System.out.println();
+		res[1].printTree();
+	}
+	
 	
 	public static void isValidTree(AVLTree tree) throws Exception {
 		if (tree.empty()) {
@@ -384,6 +429,14 @@ public class Tests {
 			throw new Exception("calculated height of node " + node.getKey() + " is: " + h + " but in the tree is:" + node.getHeight());
 		}
 		return h;
+	}
+	
+	public static AVLTree createTree(int[] keys ) {
+		AVLTree tree = new AVLTree();
+		for (int i = 0; i < keys.length; i++) {
+			tree.insert(keys[i],"i");
+		}
+		return tree;
 	}
 
 }

@@ -1,13 +1,14 @@
 package AVL;
 
 import java.util.Arrays;
+import java.util.Random;
 
 import AVL.AVLTree.AVLNode;
 import AVL.AVLTree.IAVLNode;
 import printing.TreePrinter;
 
 public class Tests {
-
+	
 	public static void main(String[] args) throws Exception {
 //		customTest();
 //		customTestDelete();
@@ -28,8 +29,57 @@ public class Tests {
 		
 		int[] ins = new int[]{10,2,12,1,11,3,4,5,6,16,15,14,13,19,18,17,7,8,9};
 		int[] del = new int[]{10,14,13,19,18,17,7,8,9};
-		deletecheckcase1_2();
+		int[] ins2 = new int[] {10,9,8,7,6,5,4,3,2,1};
+//		deletecheckcase1_2();
 //		balancingTest(ins, del, 9);
+		int []a= {10,9,8,7,6,5};
+//		int swaps=ArraySelectionSort.SelectionSort(a);
+//		System.out.println(swaps);
+//		System.out.println(Arrays.toString(a));
+//		seachInsertCheck(ins2,100);
+		try_random();
+//		try_down_sorted();
+	}
+	
+	public static void try_down_sorted() {
+		int i=4;
+		int [] array = new int [10000*i];
+		for (int k=0 ; k<array.length ;k++) {
+			array[k]=array.length-k-1;
+		}
+		
+		
+		int valFromArray=ArraySelectionSort.SelectionSort(array);
+		int valFromAVL=arrayToAVL(array);
+		System.out.println("array: "+valFromArray);
+		System.out.println("AVL: "+valFromAVL);
+
+	}
+	
+	public static void try_random() {
+		Random random = new Random();
+		int i=4;
+		int [] array = new int [10000*i];
+		for (int k=0 ; k<array.length ;k++) {
+			array[k]=random.nextInt();
+		}
+		
+		
+		int valFromArray=ArraySelectionSort.SelectionSort(array);
+		int valFromAVL=arrayToAVL(array);
+		System.out.println("array: "+valFromArray);
+		System.out.println("AVL: "+valFromAVL);
+
+	}
+	
+	
+	public static int arrayToAVL(int [] array) {
+		AVLTree tree = new AVLTree();
+		int countSearchNum=0;
+		for (int i=0 ; i<array.length ;i++) {
+			countSearchNum+=tree.insertOtherSearch(array[i],"");
+		}
+		return countSearchNum;
 	}
 	
 	public static void deletecheckcase1_2() { //
@@ -209,6 +259,32 @@ public class Tests {
 			throw new Exception();
 		}
 		isValidTree(tree);
+	}
+	
+	public static void seachInsertCheck(int[] keys, int breakOnKey) {
+		AVLTree tree = new AVLTree();
+		for (int i = 0; i < keys.length; i++) {
+			try {
+				if ( keys[i] == breakOnKey) {
+					boolean MARK_BREAK_POINT_FOR_DEBUG = true;
+				}
+//				IAVLNode x=tree.getInsertLocation(tree.getRoot(),keys[i]);
+//				IAVLNode y=tree.getInsertLocationFinger(tree.getRoot(),keys[i]);
+//				if (x!=y) {
+//					System.out.println("round "+i+":not the same");
+//				}
+				int ret=tree.insertOtherSearch(keys[i],"i");
+				isValidTree(tree);
+				System.out.println("inserted "+keys[i]+"num searched:"+ ret);
+				System.out.println("tree looks like:");
+				tree.printTree();
+			}
+			catch (Exception e) {
+				System.out.println("failed on Insert(" + keys[i] + ")  -  Error: " + e);
+				tree.printTree();
+				return;
+			}
+		}
 	}
 	
 	public static void balancingTest(int[] keys, int[] toDelete, int breakOnKey) {

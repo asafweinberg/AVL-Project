@@ -19,17 +19,21 @@ enum EDeleteCase {
 	DEMOTE, ROTATE_DEMOTE, ROTATE_DOUBLE_DEMOTE, DOUBLE, OK, ERROR;
 }
 
+
+
 public class AVLTree {
 	private AVLNode root;
 	private int size;
 	private IAVLNode min;
 	private IAVLNode max;
 	
+	private static int searchNumber=0;
+	
 	public AVLTree() {
 		this.root = new AVLNode();
 		this.size = 0;
 		this.max = new AVLNode(Integer.MIN_VALUE, "");
-		this.min = new AVLNode(Integer.MIN_VALUE, "");
+		this.min = new AVLNode(Integer.MAX_VALUE, "");
 	}
 	/**
 	 * public boolean empty()
@@ -122,17 +126,78 @@ public class AVLTree {
 	
 	// The method gets the root and the key needed to be inserted into the tree.
 	// returns the node which the new node will be under him.
-	private IAVLNode getInsertLocation(IAVLNode r, int k) {
+	private IAVLNode getInsertLocation(IAVLNode r, int k) {  //change to private!
 		if (!r.isRealNode()) {
 			return r.getParent();
 		}
 		if (r.getKey() > k) {
+			this.searchNumber++;
 			return getInsertLocation(r.getLeft(), k);
 		}
 		if (r.getKey() < k) {
+			this.searchNumber++;
 			return getInsertLocation(r.getRight(), k);
 		}
 		return null;
+	}
+	
+	public int insertOtherSearch(int k, String i) {
+		AVLNode nodeToInsert = new AVLNode(k, i);
+		
+		if (k < this.min.getKey())
+			this.min = nodeToInsert;
+		if (k > this.max.getKey())
+			this.max = nodeToInsert;
+		
+		if (this.empty())
+		{
+			this.root = nodeToInsert;
+			this.size++;
+			return 0; //check
+		}
+		
+		AVLNode parent = (AVLNode)getInsertLocationFinger(this.getRoot(), k);
+		int searchLen=this.searchNumber;
+		
+		if (parent == null) {
+			return -1;
+		}
+		
+		boolean isParentLeaf = parent.isLeaf();
+		
+		if (parent.getKey() > k) {
+			parent.setLeft(nodeToInsert);
+		}
+		else {
+			parent.setRight(nodeToInsert);
+		}
+		
+		this.size++;
+		
+		if (!isParentLeaf) {
+			return searchLen;	//to check if 1 or 0 with GARIBOS
+		}
+		else {
+			this.insertToLeaf(parent);
+			return searchLen;
+		}
+		
+	}
+	
+	private IAVLNode getInsertLocationFinger(IAVLNode r, int k) {
+		AVLNode node= this.getMaxNode();
+		this.searchNumber=0;
+		
+		while(node!=this.root && k<node.getParent().getKey() ) {  //climb the tree
+			node=(AVLNode) node.getParent();
+			this.searchNumber++;
+		}
+		if (node==this.root) { //we climbed to root
+			this.searchNumber++;
+			return getInsertLocation(node.getLeft(),k);
+		}
+		return getInsertLocation(node,k);
+		
 	}
 	
 	private int insertToLeaf(AVLNode parent) {

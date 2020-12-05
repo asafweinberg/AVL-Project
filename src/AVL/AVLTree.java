@@ -913,13 +913,13 @@ public class AVLTree {
 		public IAVLNode rotateDemote() {
 			
 			if(getRankDifference(this.getRight()) == 1) {
-				((AVLNode)this.getRight()).demote();
+				((AVLNode)this.getRight()).promote();
 				this.demote();
 				return this.RotateLeft();
 			}
 			else {
 				this.demote();
-				((AVLNode)this.getLeft()).demote();
+				((AVLNode)this.getLeft()).promote();
 				return this.RotateRight();
 			}
 		}

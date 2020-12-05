@@ -234,7 +234,7 @@ public class Tests {
 			try {
 				if ( toDelete[i] == breakOnKey) {
 					boolean MARK_BREAK_POINT_FOR_DEBUG = true;
-					tree.printTree();
+//					tree.printTree();
 				}
 				tree.delete(toDelete[i]);
 				isValidTree(tree);

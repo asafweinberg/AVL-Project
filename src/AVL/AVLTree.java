@@ -393,9 +393,10 @@ public class AVLTree {
 				}
 			}
 		}
-		else {
-			return EDeleteCase.ERROR;
+		else if (rightDifference == 1 && leftDifference == 1) {
+			return EDeleteCase.OK;
 		}
+		return EDeleteCase.ERROR;
 	}
 
 	//return a node with key k to delete (assumption is that k exist)
@@ -1108,9 +1109,20 @@ public class AVLTree {
 		}
 		
 		public IAVLNode	rotateDoubleDemote() {
-			AVLNode temp =(AVLNode) this.rotateDemote();
-			this.demote();
-			return temp;
+			
+			if(getRankDifference(this.getRight()) == 1) {
+				this.demote();
+				this.demote();
+				return this.RotateLeft();
+			}
+			else {
+				this.demote();
+				this.demote();
+				return this.RotateRight();
+			}
+//			AVLNode temp =(AVLNode) this.rotateDemote();
+//			this.demote();
+//			return temp;
 		}
 		
 		public IAVLNode doubleRotateDelete() {

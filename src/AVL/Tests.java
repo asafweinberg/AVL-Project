@@ -33,9 +33,11 @@ public class Tests {
 		
 //		joinTest();
 		splitTest();
+//		deletecheckcase1_2();
+//		balancingTest(ins, del, 9);
 	}
 	
-	public static void deletecheckcase1_2() {
+	public static void deletecheckcase1_2() { //
 		AVLTree tree = new AVLTree();
 		tree.insert(5, "number 4");
 		tree.insert(2, "number 8");
@@ -240,6 +242,8 @@ public class Tests {
 					tree.printTree();
 				}
 				tree.delete(toDelete[i]);
+//				System.out.println("this is after "+toDelete[i]);
+//				tree.printTree();
 				isValidTree(tree);
 			}
 			catch (Exception e) {
@@ -248,7 +252,7 @@ public class Tests {
 				return;
 			}
 		}
-//		tree.printTree();
+		tree.printTree();
 	}
 	
 	public static void joinTest() throws Exception {

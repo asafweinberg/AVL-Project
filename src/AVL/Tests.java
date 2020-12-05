@@ -28,11 +28,11 @@ public class Tests {
 		
 		int[] ins = new int[]{10,2,12,1,11,3,4,5,6,16,15,14,13,19,18,17,7,8,9};
 		int[] del = new int[]{10,14,13,19,18,17,7,8,9};
-		
-		balancingTest(ins, del, 14);
+		deletecheckcase1_2();
+//		balancingTest(ins, del, 9);
 	}
 	
-	public static void deletecheckcase1_2() {
+	public static void deletecheckcase1_2() { //
 		AVLTree tree = new AVLTree();
 		tree.insert(5, "number 4");
 		tree.insert(2, "number 8");
@@ -235,8 +235,11 @@ public class Tests {
 				if ( toDelete[i] == breakOnKey) {
 					boolean MARK_BREAK_POINT_FOR_DEBUG = true;
 //					tree.printTree();
+//					System.out.println("this is before "+breakOnKey);
 				}
 				tree.delete(toDelete[i]);
+//				System.out.println("this is after "+toDelete[i]);
+//				tree.printTree();
 				isValidTree(tree);
 			}
 			catch (Exception e) {
@@ -245,7 +248,7 @@ public class Tests {
 				return;
 			}
 		}
-//		tree.printTree();
+		tree.printTree();
 	}
 	
 	public static void isValidTree(AVLTree tree) throws Exception {

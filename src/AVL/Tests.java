@@ -29,10 +29,10 @@ public class Tests {
 		int[] ins = new int[]{10,2,12,1,11,3,4,5,6,16,15,14,13,19,18,17,7,8,9};
 		int[] del = new int[]{10,14,13,19,18,17,7,8,9};
 		
-//		balancingTest(ins, del, 5);
+		balancingTest(ins, del, 5);
 		
 //		joinTest();
-		splitTest();
+//		splitTest();
 //		deletecheckcase1_2();
 //		balancingTest(ins, del, 9);
 	}

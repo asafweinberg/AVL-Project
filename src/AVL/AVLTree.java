@@ -20,15 +20,32 @@ enum EDeleteCase {
 }
 
 public class AVLTree {
+	//property: the node that represents the tree's root
 	private AVLNode root;
+	//property: the size of the tree
 	private int size;
+	//property: the node that contains the minimum key in the tree
 	private IAVLNode min;
+	//property: the node that contains the maximum key in the tree
 	private IAVLNode max;
 	
+	
+	/**
+	 * private AVLTree()
+	 *
+	 * creates an empty tree.
+	 *
+	 */
 	public AVLTree() {
 		setNullTree();
 	}
 	
+	/**
+	 * private AVLTree(IAVLNode root)
+	 *
+	 * gets IAVLNode and creates a tree with the node as the root.
+	 *
+	 */
 	private AVLTree(IAVLNode root) {
 		if (root.isRealNode()) {
 			this.root = (AVLNode)root;
@@ -41,6 +58,13 @@ public class AVLTree {
 		}
 	}
 	
+	
+	/**
+	 * private void setNullTree()
+	 *
+	 * handles an empty tree construction.
+	 *
+	 */
 	private void setNullTree() {
 		this.root = new AVLNode();
 		this.size = 0;
@@ -70,6 +94,13 @@ public class AVLTree {
 		return this.search_rec(this.getRoot(), k);
 	}
 	
+	/**
+	 * private String search_rec(IAVLNode r, int k)
+	 *
+	 * returns the info of an item with key k if it exists in the tree
+	 * otherwise, returns null
+	 * this function is a recursive helper function for search(int k).
+	 */
 	private String search_rec(IAVLNode r, int k) {
 		if (!r.isRealNode()) {
 			return null;
@@ -93,13 +124,15 @@ public class AVLTree {
 	 * returns -1 if an item with key k already exists in the tree.
 	 */
 	public int insert(int k, String i) {
-		AVLNode nodeToInsert = new AVLNode(k, i);
+		AVLNode nodeToInsert = new AVLNode(k, i); // creating a node to insert from the given variables
 		
+		//handling min\ max changes according to the given key
 		if (k < this.min.getKey())
 			this.min = nodeToInsert;
 		if (k > this.max.getKey())
 			this.max = nodeToInsert;
 		
+		// if the tree is empty, just making the node we created his root and return 1- the number of operations we made
 		if (this.empty())
 		{
 			this.root = nodeToInsert;
@@ -107,6 +140,7 @@ public class AVLTree {
 			return 1;
 		}
 		
+		// finding the node to insert the new key as his son
 		AVLNode parent = (AVLNode)getInsertLocation(this.getRoot(), k);
 		if (parent == null) {
 			return -1;
@@ -114,6 +148,7 @@ public class AVLTree {
 		
 		boolean isParentLeaf = parent.isLeaf();
 		
+		// insert on the correct son of the parent that was found
 		if (parent.getKey() > k) {
 			parent.setLeft(nodeToInsert);
 		}
@@ -121,10 +156,12 @@ public class AVLTree {
 			parent.setRight(nodeToInsert);
 		}
 		
-		this.size++;
+		this.size++; // after insertion adding 1 to the tree size
 		
+		// if the parent was unary node then insert does not require any rebalance action.
+		// if the parent was a leaf the we perform the rebalance algorithm.
 		if (!isParentLeaf) {
-			return 1;	//to check if 1 or 0 with GARIBOS
+			return 1;	
 		}
 		else {
 			return this.insertRebalance(parent);
@@ -132,14 +169,22 @@ public class AVLTree {
 		
 	}
 	
+	/**
+	 * public int insert(int k)
+	 *
+	 * calls insert(int k, String i) with a constant i parameter by k.
+	 */
 	public int insert(int k) {
 		return this.insert(k, "number "+k);
 	}
 	
 	
-	
-	// The method gets the root and the key needed to be inserted into the tree.
-	// returns the node which the new node will be under him.
+	/**
+	 * public int insert(int k)
+	 *
+	 * The method gets the root and the key needed to be inserted into the tree.
+	 * returns the node which will be his parent.
+	 */
 	private IAVLNode getInsertLocation(IAVLNode r, int k) {
 		if (!r.isRealNode()) {
 			return r.getParent();
@@ -153,52 +198,75 @@ public class AVLTree {
 		return null;
 	}
 	
+	/**
+	 * private int insertRebalance(AVLNode parent)
+	 *
+	 * The method gets a node from which the tree - rebalancing actions should begin
+	 * it goes upto the root if needed and perform the required action according to the possible cases
+	 */
 	private int insertRebalance(AVLNode parent) {
 		AVLNode node = parent;
 		IAVLNode rootAfterRotate = null;
 		int balanceActions = 1;
 		EInsertCase which_case = null;
-		while (node != null ) {
-			which_case = getCaseOfInsert(node);
+		while (node != null ) { // breaks after reaching the root and checking for the right case
+			which_case = getCaseOfInsert(node); // get rebalance case
 			switch(which_case) {
+				// perform promotion
 				case PROMOTE:
-					node.promote();
-					node.updateSize();
-					balanceActions++;
+					node.promote(); // promoting the nodes height
+					node.updateSize(); // updating the node's subtree size
+					balanceActions++; // adding one rebalance action to the total actions
 					break;
+				// perform rotation
 				case ROTATE:
-					rootAfterRotate = node.rotateInsert();
-					balanceActions+=2;
+					rootAfterRotate = node.rotateInsert(); //handle insert-rotation case
+					balanceActions+=2; // adding 2 rebalance actions to the total actions
+					// if we reached the root and performed a rotation then we need to change the root's ...
+					// property accordingly to the new root after the rotation
 					if (this.root == node)
 						this.setRoot(rootAfterRotate);
-//					node = (AVLNode) rootAfterRotate;
 					break;
+				// perform rotation
 				case DOUBLE:
-					rootAfterRotate = node.doubleRotateInsert();
+					rootAfterRotate = node.doubleRotateInsert(); //handle insert-double-rotation case
+					// if we reached the root and performed a rotation then we need to change the root's ...
+					// property accordingly to the new root after the rotation
 					if (this.root == node)
 						this.setRoot(rootAfterRotate);
-					balanceActions+=5; 
-//					node = (AVLNode) rootAfterRotate;
+					balanceActions+=5; // adding 5 rebalance actions to the total actions
 					break;
+				// perform rotation after joining trees (can't happen after insertion)
 				case JOIN_ROTATE:
-					rootAfterRotate = node.joinRotate();
+					rootAfterRotate = node.joinRotate(); //handle join-rotation case
+					// if we reached the root and performed a rotation then we need to change the root's ...
+					// property accordingly to the new root after the rotation
 					if (this.root == node)
 						this.setRoot(rootAfterRotate);
-					balanceActions+=2; 
+					balanceActions+=2; // adding 2 rebalance actions to the total actions
 					node = (AVLNode) rootAfterRotate;
 					break;
+				// A case for testing, in a correctly built tree we can't get to another case
 				case ERROR:
 					System.out.println("not working - case Insert not found :(");
+				// default is OK
 				default:
-					this.updateSizeFrom(node);
-					return balanceActions;
+					this.updateSizeFrom(node); // updating the nodes's size property all the way to the root
+					return balanceActions; // returning the number of balance actions performed.
 			}
-			node = (AVLNode)node.getParent();
+			node = (AVLNode)node.getParent(); // moving up to the parent and continue rebalncing the tree
 		}
 		return balanceActions;		
 	}
 	
+	/**
+	 * private EInsertCase getCaseOfInsert(AVLNode node)
+	 *
+	 * gets a node and checking his rank-differences.
+	 * returning the rebalance action needed in order to rebalnce the tree according to his rank-defferences.
+	 */
 	private EInsertCase getCaseOfInsert(AVLNode node) {
+		// get both rank-defferences 
 		int rightDifference = AVLNode.getRankDifference(node.getRight());
 		int leftDifference = AVLNode.getRankDifference(node.getLeft());
 		if (leftDifference == 1 && rightDifference == 1) {
@@ -247,6 +315,11 @@ public class AVLTree {
 		return EInsertCase.ERROR;
 	}
 	
+	/**
+	 * private void updateSizeFrom(AVLNode node)
+	 *
+	 * update nodes's size property up to the root of the tree.
+	 */
 	private void updateSizeFrom(AVLNode node){
 		while (node != null ) {
 			node.updateSize();
@@ -542,16 +615,20 @@ public class AVLTree {
 		return this.min.getValue();
 	}
 	
+	/**
+	 * public AVLNode getMinNode()
+	 *
+	 * Returns the node with the lowest key in the tree
+	 */
 	private AVLNode getMinNode() {
-		
 		return minNodeFromNode(this.root);
-//		IAVLNode n = this.root;
-//		while(n.getLeft().isRealNode()) {
-//			n = n.getLeft();
-//		}
-//		return (AVLNode)n;
 	}
 	
+	/**
+	 * public AVLNode minNodeFromNode()
+	 *
+	 * Returns the node with the lowest key in the sub-tree of the given node
+	 */
 	private AVLNode minNodeFromNode(IAVLNode node) {
 		
 		while(node.getLeft().isRealNode()) {
@@ -571,6 +648,11 @@ public class AVLTree {
 		return this.max.getValue();
 	}
 	
+	/**
+	 * public AVLNode getMaxNode()
+	 *
+	 * Returns the node with the highest key in the tree
+	 */
 	private AVLNode getMaxNode() {
 		IAVLNode n = this.root;
 		while(n.getRight().isRealNode()) {
@@ -627,16 +709,29 @@ public class AVLTree {
 		return infos;
 	}
 	
+	/**
+	 * public IAVLNode[] getSortedNodesArray()
+	 *
+	 * Returns a sorted array of all the nodes in the tree,
+	 * or an empty array if the tree is empty.
+	 */
 	private IAVLNode[] getSortedNodesArray() {
 		IAVLNode[] nodesArray = new IAVLNode[this.size];
 		Stack<IAVLNode> s = new Stack<IAVLNode>();
-		this.getSortedNodesArray_rec(this.root, s);
+		this.getSortedNodesArray_rec(this.root, s); // get a stack containing nodes by their keys, highest to lowest
+		// moving the nodes from the stack to the array, opposite to the order of their insertion.
 		for (int i = nodesArray.length - 1; i >= 0; i--) {
 			nodesArray[i] = s.pop();
 		}
 		return nodesArray;
 	}
 	
+	/**
+	 * private void getSortedNodesArray_rec(IAVLNode node, Stack<IAVLNode> s)
+	 *
+	 * Returns a stack containing the nodes of the tree which "node" is his root.
+	 * adding the elements to the stack is by in-order for their sorted order.
+	 */
 	private void getSortedNodesArray_rec(IAVLNode node, Stack<IAVLNode> s) {
 		if(!node.isRealNode()) {
 			return;
@@ -673,9 +768,14 @@ public class AVLTree {
 		return this.root;
 	}
 	
+	/**
+	 * private void setRoot(IAVLNode r)
+	 *
+	 * setting a new root to the tree
+	 */
 	private void setRoot(IAVLNode r) {
 		this.root = (AVLNode)r;
-		r.setParent(null);
+		r.setParent(null); // setting the root's parent to null
 	}
 	
 	/**

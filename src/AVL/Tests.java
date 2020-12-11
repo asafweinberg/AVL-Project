@@ -43,7 +43,7 @@ public class Tests {
 //		System.out.println(swaps);
 //		System.out.println(Arrays.toString(a));
 //		seachInsertCheck(ins2,100);
-		try_random();
+//		try_random();
 //		try_down_sorted();
 	}
 	

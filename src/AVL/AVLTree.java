@@ -858,7 +858,7 @@ public class AVLTree {
 		}
 	}
 	
-	private IAVLNode getLeftJoiningNode(AVLTree t, int height) {
+	private IAVLNode getLeftJoiningNode(AVLTree t, int height) { 
 		IAVLNode node = t.getRoot();
 		while(node.getHeight() > height) {
 			node = node.getLeft();

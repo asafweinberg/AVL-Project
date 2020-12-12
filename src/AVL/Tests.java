@@ -35,7 +35,7 @@ public class Tests {
 //		balancingTest(ins, del, 5);
 		
 //		joinTest();
-		splitTest();
+//		splitTest();
 //		deletecheckcase1_2();
 //		balancingTest(ins, del, 9);
 		int []a= {10,9,8,7,6,5};
@@ -43,20 +43,20 @@ public class Tests {
 //		System.out.println(swaps);
 //		System.out.println(Arrays.toString(a));
 //		seachInsertCheck(ins2,100);
-		try_random();
+		try_down_sorted();
 //		try_down_sorted();
 	}
 	
 	public static void try_down_sorted() {
-		int i=4;
-		int [] array = new int [10000*i];
+		int i=2;
+		int [] array = new int [100];
 		for (int k=0 ; k<array.length ;k++) {
 			array[k]=array.length-k-1;
 		}
-		
-		
-		int valFromArray=ArraySelectionSort.SelectionSort(array);
+//		System.out.println(Arrays.toString(array));
 		int valFromAVL=arrayToAVL(array);
+		int valFromArray=ArraySelectionSort.SelectionSort(array);
+		
 		System.out.println("array: "+valFromArray);
 		System.out.println("AVL: "+valFromAVL);
 
@@ -70,9 +70,9 @@ public class Tests {
 			array[k]=random.nextInt();
 		}
 		
-		
-		int valFromArray=ArraySelectionSort.SelectionSort(array);
 		int valFromAVL=arrayToAVL(array);
+		int valFromArray=ArraySelectionSort.SelectionSort(array);
+		
 		System.out.println("array: "+valFromArray);
 		System.out.println("AVL: "+valFromAVL);
 
@@ -83,7 +83,10 @@ public class Tests {
 		AVLTree tree = new AVLTree();
 		int countSearchNum=0;
 		for (int i=0 ; i<array.length ;i++) {
-			countSearchNum+=tree.insertOtherSearch(array[i],"");
+			int t=tree.insertOtherSearch(array[i],"");
+			countSearchNum+=t;
+//			System.out.println("now is added: "+array[i]+"it took"+t);
+//			tree.printTree();
 		}
 		return countSearchNum;
 	}

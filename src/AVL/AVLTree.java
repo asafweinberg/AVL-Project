@@ -29,11 +29,13 @@ public class AVLTree {
 	//property: the node that contains the minimum key in the tree
 	private IAVLNode min;
 	//property: the node that contains the maximum key in the tree
-	private IAVLNode max;
+	public IAVLNode max; //check to private
 	
-	
-	
+	//to delete when done:
 	private static int searchNumber=0;
+	public int maxJoin = 0;
+	public int sumJoin = 0;
+	public int countJoin = 0;
 	
 	/**
 	 * private AVLTree()
@@ -53,10 +55,12 @@ public class AVLTree {
 	 */
 	private AVLTree(IAVLNode root) {
 		if (root.isRealNode()) {
-			this.root = (AVLNode)root;
+			this.setRoot(root);
+//			this.root = (AVLNode)root;
 			this.size = this.root.getSize();
 			this.max = this.getMaxNode();
 			this.min = this.getMinNode();
+			
 		}
 		else {
 			setNullTree();
@@ -404,36 +408,38 @@ public class AVLTree {
 	 * returns -1 if an item with key k was not found in the tree.
 	 */
 	public int delete(int k)
-	{
+	{	
+		// if tree is empty no rebalancing was performed
 		if (this.empty()) {
 			return 0;
 		}
+		//nodeToDelete is the the node with key k
 		AVLNode nodeToDelete = (AVLNode)this.getDeleteLocation(k);
+		
+		// if no k exists in tree returns -1
 		if (nodeToDelete==null)
 			return -1;
 		
+		//replacment is the node that replaces the node which is deleted
 		AVLNode replacement=null;
-		if(nodeToDelete.isUnaryNode() ) {  
+		
+		// if the node which is deleted is a binary node, it is replaced with its successor, and now successor needs to be deleted
+		// successor is never a binary node
+		if(nodeToDelete.isBinaryNode() ) {  
 			replacement = (AVLNode) this.getNodeToReplace(nodeToDelete);
 			this.replace(nodeToDelete,replacement);
 			nodeToDelete=replacement;
 		}
 		
 		AVLNode parent = (AVLNode)nodeToDelete.getParent();
-//		boolean deletingLeaf = nodeToDelete.isLeaf();
-		
+		// removes the node to be deleted from tree
 		this.deleteNode(nodeToDelete);
-//		System.out.println("after one delete:");
-//		this.printTree();
+		//contains number of rebalancing operations performed during deleting process
 		int balanceActions;
+		// performs rebalancing actions on the tree starting from the parent of the node which was removed from tree
+		balanceActions = this.deleteRebalance(parent);
 		
-//		if(deletingLeaf) {
-			balanceActions = this.deleteRebalance(parent);
-//		}
-//		else {
-//			balanceActions = this.deleteRebalance(parent);
-//		}
-		
+		//updating max and min in tree
 		if (k == this.min.getKey()) {
 			this.min = this.getMinNode();
 		}
@@ -443,43 +449,56 @@ public class AVLTree {
 		this.size--;
 		return balanceActions;
 	}
+	/**
+	 * private int deleteRebalance(AVLNode parent)
+	 * 
+	 * performs rebalancing operations on the tree starting from the input node
+	 * it goes upto the root if needed and perform the required action according to the possible cases
+	 */
 	
 	private int deleteRebalance(AVLNode parent) {
+		//node is the iterator node up to the tree
 		AVLNode node = parent;
+		//rootAfterRotate is the node after a potential rotation  
 		IAVLNode rootAfterRotate = null;
+		// balanceActions is the counter of balance Actions
 		int balanceActions = 1;
+		
+		// until the top of the tree is reached 
 		while (node != null ) {
+			// which_case holds the case of rebalancing operations needed to be preformed according to rank differences
 			EDeleteCase which_case = getCaseOfDelete(node);
 			switch(which_case) {
 				case DEMOTE:
-					node.demote();
-					balanceActions++;
+					node.demote(); //demotes current node rank
+					balanceActions++; //balance actions rises by 1, only one demote
 					break;
 				case ROTATE_DEMOTE:		
-					rootAfterRotate= node.rotateDemote();
-					balanceActions+=3;
-					if (this.root == node)
+					rootAfterRotate= node.rotateDemote(); //rotate and demotes current node
+					balanceActions+=3;			//balance actions rises by 3: 1 demote 1 promote and 1 rotate
+					if (this.root == node) //if node was the root, a new root is set which is rootAfterRotate
 						this.setRoot(rootAfterRotate);
-					node = (AVLNode) rootAfterRotate; //not sure
+					node = (AVLNode) rootAfterRotate;
 					break;
-				case ROTATE_DOUBLE_DEMOTE:	//CASE 3 after it the rank differences are 1 1 - we need to go one more parent up
-					rootAfterRotate= node.rotateDoubleDemote();
-					balanceActions+=3;
+				case ROTATE_DOUBLE_DEMOTE:	
+					rootAfterRotate= node.rotateDoubleDemote(); //rotate and demotes twice
+					balanceActions+=3; //balance actions rises by 3: 2 demote and 1 rotate
 					if (this.root == node)
-						this.setRoot(rootAfterRotate);
-					node = (AVLNode) rootAfterRotate; //not sure
+						this.setRoot(rootAfterRotate); //if node was the root, a new root is set which is rootAfterRotate
+					node = (AVLNode) rootAfterRotate; 
 					break;
 				case DOUBLE:
-					rootAfterRotate= node.doubleRotateDelete();
+					rootAfterRotate= node.doubleRotateDelete(); //double rotates, 3 demotes and 1 promote
 					balanceActions+=6;
 					if (this.root == node)
-						this.setRoot(rootAfterRotate);
-					node = (AVLNode) rootAfterRotate; //not sure
+						this.setRoot(rootAfterRotate); //if node was the root, a new root is set which is rootAfterRotate
+					node = (AVLNode) rootAfterRotate; 
 					break;
 				case ERROR:
 					System.out.println("not working - case Delete not found :(");
 					break;
 				default:
+					this.updateSizeFrom(node); //CHECK WITH ASAF
 					return balanceActions;	//OK
 			}
 			node = (AVLNode)node.getParent();
@@ -487,15 +506,22 @@ public class AVLTree {
 		return balanceActions;		
 	}
 	
+	/**
+	 * private EDeleteCase getCaseOfDelete(AVLNode node)
+	 * gets a node and checking its rank-differences.
+	 * returns the rebalance action needed in order to rebalance the tree according to its rank-differences.
+	 */
+	
 	private EDeleteCase getCaseOfDelete(AVLNode node) {
+		// get both rank-differences 
 		int rightDifference = ((AVLNode)node.getRight()).getRankDifference();
 		int leftDifference = ((AVLNode)node.getLeft()).getRankDifference();
 		if (rightDifference == 2 || leftDifference == 2) {
 			if (rightDifference - leftDifference == 0) {
-				return EDeleteCase.DEMOTE;			//CASE 1 - 2 2
+				return EDeleteCase.DEMOTE;			//CASE DEMOTE - rank diff are 2 , 2
 			}
 			else {
-				return EDeleteCase.OK;				//CASE 1 - 1 2
+				return EDeleteCase.OK;				//CASE OK -  rank diff are 1 , 2
 			}
 		}
 		if (rightDifference == 3 || leftDifference == 3) {
@@ -538,18 +564,25 @@ public class AVLTree {
 		}
 		return EDeleteCase.ERROR;
 	}
+	/**
+	 * private IAVLNode getDeleteLocation(int k)
+	 * searches node with key k to delete, and returns it
+	 * if k does not exist returns null
+	 */
 
-	//return a node with key k to delete (assumption is that k exist)
  	private IAVLNode getDeleteLocation(int k) {
  		
  			IAVLNode iteratorNode=(this.getRoot());
+ 			
  			while(iteratorNode.isRealNode()) {
  				if (iteratorNode.getKey() == k)
  					return iteratorNode;
+ 				//search left subtree
  				if (iteratorNode.getKey() > k) {
  					iteratorNode=iteratorNode.getLeft();
  					continue;
  	 			}
+ 				//search right subtree
  				if (iteratorNode.getKey() < k) {
  					iteratorNode=iteratorNode.getRight();
  					continue;
@@ -557,14 +590,28 @@ public class AVLTree {
  			}
  			return null;		
  	}
+ 	
+ 	/**
+	 * private IAVLNode getNodeToReplace(IAVLNode toDelete)
+	 * 
+	 * input: a Node to delete in the tree
+	 * returns the Node to replace in the tree the node which needs to be deleted
+	 */
+ 	
  	private IAVLNode getNodeToReplace(IAVLNode toDelete) {
+ 		//successor of deleted node
  		AVLNode successor= (AVLNode)this.SuccessorOf(toDelete);
-
+ 		//if Node is the maximum
  		if (successor==null)
  			return toDelete;
  		return successor;
  	}
- 	private void replace(AVLNode deleted, AVLNode replacement) { //returns the one which needs to be deleted, in the original replacement place with
+	/**
+	 * private void replace(AVLNode deleted, AVLNode replacement)
+	 * 
+	 * the method swaps between the deleted node and replacement node by values of the nodes' fields
+	 */
+ 	private void replace(AVLNode deleted, AVLNode replacement) { 
  		int delKey=deleted.getKey();
  		String delInfo=deleted.getValue();
  		deleted.setKey(replacement.getKey());
@@ -573,96 +620,31 @@ public class AVLTree {
  		replacement.setInfo(delInfo);
  	}
  	
-//		
-//	private void replace(AVLNode deleted, AVLNode replacement) { //returns the one which needs to be deleted, in the original replacement place with 
-//		int heightDeleted =deleted.getHeight();
-//		int heightRep=replacement.getHeight();
-//		AVLNode repRight;
-//		AVLNode repParent;
-//		AVLNode repLeft;
-//				
-//		replacement.setHeight(heightDeleted);
-//		deleted.setHeight(heightRep);
-//		
-//		if(replacement==deleted.getRight()) { //close case 1
-//			
-//			AVLNode deletedOtherSon=(AVLNode) deleted.getLeft();
-//			repRight = (AVLNode) replacement.getRight();
-//			repLeft = (AVLNode) replacement.getLeft();
-//			
-//			replacement.setParent(deleted.getParent());
-//			replacement.setRightForRep(deleted); //new
-//			replacement.setLeftForRep(deleted.getLeft());
-//			
-//			deleted.setRightForRep(repRight);
-//			deleted.setLeftForRep(repLeft);
-//			deleted.setParent(replacement);	//new
-////			if (deletedOtherSon.isRealNode())
-//				deletedOtherSon.setParent(replacement);
-////			if (repRight.isRealNode())
-//				repRight.setParent(deleted);
-////			if (repLeft.isRealNode())
-//				repLeft.setParent(deleted);
-//			System.out.println("inside replace this is how it looks");
-//			this.printTree();
-//			return;
-//		}
-//		
-//		if(deleted==replacement.getLeft()) {
-//			repRight = (AVLNode) replacement.getRight();
-//			repParent = (AVLNode) replacement.getParent();
-//			AVLNode repOtherSon=(AVLNode) replacement.getRight();
-//			AVLNode delRight= (AVLNode) deleted.getRight();
-//			AVLNode delLeft= (AVLNode) deleted.getLeft();
-//			
-//			replacement.setParent(deleted); //new
-//			replacement.setRightForRep(deleted.getRight()); 
-//			replacement.setLeftForRep(deleted.getLeft());
-//			
-//			deleted.setRightForRep(repRight);
-//			deleted.setLeftForRep(replacement); //new
-//			deleted.setParent(repParent);	
-//			
-//			
-//			repOtherSon.setParent(deleted);
-//			delRight.setParent(replacement);
-//			delLeft.setParent(replacement);
-//			System.out.println("inside replace this is how it looks");
-//			this.printTree();
-//			return;
-//		}
-//		
-//		//rep parameters
-//		repParent = (AVLNode) replacement.getParent();
-//		repRight = (AVLNode) replacement.getRight();
-//		repLeft = (AVLNode) replacement.getLeft();
-//		
-//		replacement.setParent(deleted.getParent());
-//		replacement.setRightForRep(deleted.getRight());
-//		replacement.setLeftForRep(deleted.getLeft());
-//		
-//		deleted.setRightForRep(repRight);
-//		deleted.setLeftForRep(repLeft);
-//		deleted.setParent(repParent);
-//		System.out.println("inside replace this is how it looks");
-//		this.printTree();	
-//	}
-	
-	private void deleteNode(AVLNode nodeToDelete) { //delete when it is not a binary node!
-		if(nodeToDelete.isUnaryNode() ) { // if it has 2 children
+ 	/**
+	 * private void deleteNode(AVLNode nodeToDelete) 
+	 * 
+	 * removes the input node from the tree by connecting the node to be deleted's parent with its only son 
+	 * precondition: nodeToDelete is not a binary node
+	 */
+	private void deleteNode(AVLNode nodeToDelete) { 
+		 // if binary node
+		if(nodeToDelete.isBinaryNode() ) {
 			System.out.println("error it is a binary node that you try to delete");
 			return;
 		}
+		
 		AVLNode parent=(AVLNode) nodeToDelete.getParent();
+		//rest would be the single subtree of nodeToDelete
 		AVLNode rest;
 		
-		if (nodeToDelete.getRight().isRealNode()) { //has right son
+		//if nodeToDelete has a right son, rest is the subtree of its right son. else it is the subtree of its lrft son
+		if (nodeToDelete.getRight().isRealNode()) { 
 			rest=(AVLNode) nodeToDelete.getRight();
 			}
 		else {
 			rest=(AVLNode) nodeToDelete.getLeft();
 		}
-					
+		//connects nodeToDelete's parent with its rest (doing a bypass of nodeToDelete)		
 		if (nodeToDelete.isLeftSon()) {
 			parent.setLeft(rest);
 		}
@@ -720,7 +702,7 @@ public class AVLTree {
 	 *
 	 * Returns the node with the highest key in the tree
 	 */
-	private AVLNode getMaxNode() {
+	private AVLNode getMaxNode() { 
 		IAVLNode n = this.root;
 		while(n.getRight().isRealNode()) {
 			n = n.getRight();
@@ -728,11 +710,24 @@ public class AVLTree {
 		return (AVLNode)n;
 	}
 	
+	public AVLNode maxNodeFromNode(IAVLNode n) { //delete when done
+		while(n.getRight().isRealNode()) {
+			n = n.getRight();
+		}
+		return (AVLNode)n;
+	}
+	
+	/**
+	 * private AVLNode SuccessorOf(IAVLNode node) 
+	 * returns the successor of node in the tree
+	 */
+	
 	private AVLNode SuccessorOf(IAVLNode node) {
-		
+		//if node has a right son returns the minimum from the right son
 		if (node.getRight().isRealNode()) {
 			return this.minNodeFromNode(node.getRight());
 		}
+		//else returns the first parent to be on the right
 		IAVLNode parent=node.getParent();
 		while (parent!=null && parent.getRight()==node) {
 			node=parent;
@@ -855,22 +850,27 @@ public class AVLTree {
 	 */   
 	public AVLTree[] split(int x)
 	{
+		//result is an array of 2 AVLTrees: AVLTree[0] keys are less than x AVLTree[1] keys are greater than x 
 		AVLTree[] result = new AVLTree[2];
+		
+		//node is the node the tree is splitted from
 		IAVLNode node = this.getDeleteLocation(x);
 		result[0] = new AVLTree(node.getLeft());
 		result[1] = new AVLTree(node.getRight());
 		
-		int maxJoin = 0; int sumJoin = 0; int countJoin = 0;
+		maxJoin = 0; sumJoin = 0; countJoin = 0;
 		int joinComp;
-		
+		//isRightSon holds if node is rightSon 
 		boolean isRightSon = ((AVLNode)node).isRightSon();
 		node = node.getParent();
+		//the splitting process of climbing the tree and joining with result[0] or result[1] 
 		while(node != null) {
+			//connectionNode: creating a new node to send to join method
 			AVLNode connectionNode = new AVLNode(node.getKey(), node.getValue());
-			if (isRightSon) {
+			if (isRightSon) { // if right son the left subtree of node needs to be join to result[0]
 				joinComp = result[0].join(connectionNode, new AVLTree(node.getLeft()));
 			}
-			else {
+			else { // else the right subtree of node needs to be join to result[1]
 				joinComp = result[1].join(connectionNode, new AVLTree(node.getRight()));
 			}
 			
@@ -894,8 +894,11 @@ public class AVLTree {
 	 */   
 	public int join(IAVLNode x, AVLTree t)
 	{
+		//bigger and smaller trees according to this and t heights
 		AVLTree bigger, smaller;
 		int complexity;
+		
+		//determine which tree is bigger and smaller according to heights and determines the complexity
 		if (this.getTreeHeight() > t.getTreeHeight()) {
 			bigger = this;
 			smaller = t;
@@ -908,39 +911,42 @@ public class AVLTree {
 		}
 		
 		IAVLNode xParent;
+		//determine how to join the trees: if x is smaller goes left in the bigger tree until reaches the right rank  
 		if(bigger.getRoot().getKey() > x.getKey()) {
 			IAVLNode connectionNode = this.getLeftJoiningNode(bigger, smaller.getTreeHeight());
 			xParent = connectionNode.getParent();
 			
+			//the joining operations
 			x.setLeft(smaller.getRoot());
 			x.setRight(connectionNode);
 			x.setHeight(smaller.getTreeHeight() + 1);
-			if(xParent != null) {
+			if(xParent != null) { //sets the new root to be bigger tree
 				xParent.setLeft(x);
-				this.setRoot(bigger.getRoot());
+				this.setRoot(bigger.getRoot()); //sets the new root to be x 
 			}
 			else {
 				this.setRoot(x);
 			}
 		}
-		else {
+		else { //goes right in the bigger tree until reaches the right rank
 			IAVLNode connectionNode = this.getRightJoiningNode(bigger, smaller.getTreeHeight());
 			xParent = connectionNode.getParent();
-			
+			//the joining operations
 			x.setRight(smaller.getRoot());
 			x.setLeft(connectionNode);
 			x.setHeight(smaller.getTreeHeight() + 1);
-			if(xParent != null) {
+			if(xParent != null) { //sets the new root to be bigger tree
 				xParent.setRight(x);
 				this.setRoot(bigger.getRoot());
 			}
 			else {
-				this.setRoot(x);
+				this.setRoot(x); //sets the new root to be x 
 			}
 		}
 		
-		
+		//rebalancing operations on the tree from where we joined the trees
 		this.insertRebalance((AVLNode)xParent);
+		//updating fields
 		this.size = ((AVLNode)this.getRoot()).getSize();
 		this.min = this.getMinNode();
 		this.max = this.getMaxNode();
@@ -958,6 +964,12 @@ public class AVLTree {
 		}
 	}
 	
+	/**
+	 * private IAVLNode getLeftJoiningNode(AVLTree t, int height)
+	 *
+	 * the method returns the first left-most node in t with rank height
+	 */ 
+	
 	private IAVLNode getLeftJoiningNode(AVLTree t, int height) {
 		IAVLNode node = t.getRoot();
 		while(node.getHeight() > height) {
@@ -965,6 +977,12 @@ public class AVLTree {
 		}
 		return node;
 	}
+	
+	/**
+	 * private IAVLNode getRightJoiningNode(AVLTree t, int height)
+	 *
+	 * the method returns the first right-most node in t with rank height
+	 */ 
 	
 	private IAVLNode getRightJoiningNode(AVLTree t, int height) {
 		IAVLNode node = t.getRoot();
@@ -1197,10 +1215,10 @@ public class AVLTree {
 			return !this.getLeft().isRealNode() && !this.getRight().isRealNode();
 		}
 		
-		/** public boolean isUnaryNode()
-		 * returns true if the node has exactly one son, else, returns false.
+		/** public boolean isBinaryNode()
+		 * returns true if the node has exactly two sons, else, returns false.
 		 */
-		public boolean isUnaryNode() {
+		public boolean isBinaryNode() {  
 			return this.getRight().isRealNode() && this.getLeft().isRealNode();
 		}
 		
@@ -1407,9 +1425,6 @@ public class AVLTree {
 				this.demote();
 				return this.RotateRight();
 			}
-//			AVLNode temp =(AVLNode) this.rotateDemote();
-//			this.demote();
-//			return temp;
 		}
 		
 		/** public IAVLNode doubleRotateDelete()

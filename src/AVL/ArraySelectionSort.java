@@ -2,10 +2,10 @@ package AVL;
 
 public class ArraySelectionSort {
 	//func sorts the array and returns number of swaps
-	public static int SelectionSort(int [] array) {
+	public static long SelectionSort(int [] array) {
 		int key;
 		int j;
-		int count=0;
+		long count=0;
 		for (int i=1 ;i<array.length ; i++) {
 			key=array[i];
 			j=i-1;

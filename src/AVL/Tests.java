@@ -32,56 +32,102 @@ public class Tests {
 
 		int[] ins2 = new int[] {10,9,8,7,6,5,4,3,2,1};
 		
-		balancingTest(ins, del, 5);
+//		balancingTest(ins, del, 5);
 		
 //		joinTest();
 //		splitTest();
 //		deletecheckcase1_2();
 //		balancingTest(ins, del, 9);
-		int []a= {10,9,8,7,6,5};
+//		int []a= {10,9,8,7,6,5};
 //		int swaps=ArraySelectionSort.SelectionSort(a);
 //		System.out.println(swaps);
 //		System.out.println(Arrays.toString(a));
 //		seachInsertCheck(ins2,100);
 //		try_random();
 //		try_down_sorted();
+	//	downSortedchecks();
+//		downSortedchecks();
+//		randomChecks();
+		join_check(6);
+	}
+	public static void downSortedchecks() {
+		for (int i=1 ; i<=10 ;i++) {
+			try_down_sorted(i);
+		}
+	}
+	public static void randomChecks() {
+		for (int i=1 ; i<=2 ;i++) {
+			try_random(i);
+		}
 	}
 	
-	public static void try_down_sorted() {
-		int i=4;
+	public static void join_check(int i){
+		Random random = new Random();
+		AVLTree tree_random=new AVLTree();
+		AVLTree tree_middle=new AVLTree();
+		
+		int [] array = new int [10000];
+		for (int k=0 ; k<array.length ;k++) {
+			array[k]=random.nextInt();
+		}
+//		int [] array = {12, 6, 12, 2, 3, 15, 3, 5, 14, 9};
+		
+		for (int k=0 ; k<array.length ;k++) {
+				tree_random.insert(array[k]);
+				tree_middle.insert(array[k]);
+		}
+//		tree_random.printTree();
+//		System.out.println(Arrays.toString(array));
+		
+		int randomNum= array[random.nextInt(array.length)]; //15;
+	//	System.out.println(randomNum);
+		int middle= tree_middle.maxNodeFromNode(tree_middle.getRoot().getLeft()).getKey();	
+		
+		tree_random.split(randomNum);
+		System.out.println("max join occured in random tree: "+ tree_random.maxJoin);
+		System.out.println("average join occured in random tree: "+ (double)(tree_random.sumJoin)/tree_random.countJoin);
+		
+		tree_middle.split(middle);
+		System.out.println("max join occured in middle tree: "+ tree_middle.maxJoin);
+		System.out.println("average join occured in middle tree: "+ (double)(tree_middle.sumJoin)/tree_middle.countJoin);
+		
+	}
+	
+	public static void try_down_sorted(int i) {
+//		int i=4;
 		int [] array = new int [10000*i];
 		for (int k=0 ; k<array.length ;k++) {
 			array[k]=array.length-k-1;
 		}
 		
-		
-		int valFromArray=ArraySelectionSort.SelectionSort(array);
-		int valFromAVL=arrayToAVL(array);
-		System.out.println("array: "+valFromArray);
-		System.out.println("AVL: "+valFromAVL);
+		long valFromAVL=arrayToAVL(array);
+		long valFromArray=ArraySelectionSort.SelectionSort(array);
+	
+		System.out.println("from array down sorted round "+i+ ":"+valFromArray);
+		System.out.println("from AVL down sorted round "+i+ ":"+valFromAVL);
 
 	}
 	
-	public static void try_random() {
+	public static void try_random(int i) {
 		Random random = new Random();
-		int i=4;
+	//	int i=4;
 		int [] array = new int [10000*i];
 		for (int k=0 ; k<array.length ;k++) {
 			array[k]=random.nextInt();
 		}
+//		System.out.println(Arrays.toString(array));
+		long valFromAVL=arrayToAVL(array);
+		long valFromArray=ArraySelectionSort.SelectionSort(array);
 		
-		
-		int valFromArray=ArraySelectionSort.SelectionSort(array);
-		int valFromAVL=arrayToAVL(array);
-		System.out.println("array: "+valFromArray);
-		System.out.println("AVL: "+valFromAVL);
+		System.out.println("from array random sorted round "+i+ ":"+valFromArray);
+		System.out.println("from AVL random sorted round "+i+ ":"+valFromAVL);
 
 	}
 	
 	
-	public static int arrayToAVL(int [] array) {
+	public static long arrayToAVL(int [] array) {
 		AVLTree tree = new AVLTree();
-		int countSearchNum=0;
+		long countSearchNum=0;
 		for (int i=0 ; i<array.length ;i++) {
 			countSearchNum+=tree.insertOtherSearch(array[i],"");
 		}

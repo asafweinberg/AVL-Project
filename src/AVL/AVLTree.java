@@ -1082,12 +1082,6 @@ public class AVLTree {
 			this.updateSize(); // updating the size
 		}
 		
-
-		public void setLeftForRep(IAVLNode node)
-		{
-			this.left = node; 
-		}
-		
 		/** public IAVLNode getLeft()
 		 * returns the node's left son.
 		 */
@@ -1104,12 +1098,6 @@ public class AVLTree {
 			this.right = node;
 			node.setParent(this); // updating the parent
 			this.updateSize(); // updating the size
-		}
-		
-		
-		public void setRightForRep(IAVLNode node)
-		{
-			this.right = node;
 		}
 		
 		/** public IAVLNode getRight()
